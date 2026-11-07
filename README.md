@@ -26,3 +26,7 @@ cd services/analytics && pip install -e ".[dev]" && pytest && python -m pinpulse
 - [ ] SPEC-001 OAuth connect/disconnect
 - [ ] SPEC-002 Nightly sync
 - [ ] SPEC-010 CSV import (v0 Drop Check)
+
+## Plan and research
+- Master plan (Claude doc): https://claude.ai/artifact/RrVoqRUAVvGGayEDXuSLxP
+- Research reports: `docs/research/` (detection methods, Pinterest platform verification, competitors/customers/design, engineering stack & deployment, graph engineering)

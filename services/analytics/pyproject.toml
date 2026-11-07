@@ -1,0 +1,16 @@
+[project]
+name = "pinpulse-analytics"
+version = "0.1.0"
+description = "PinPulse detection and diagnosis engine"
+requires-python = ">=3.11"
+dependencies = ["numpy>=1.26", "scipy>=1.11"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "hypothesis>=6", "ruff>=0.5", "mypy>=1.10"]
+api = ["fastapi>=0.115", "uvicorn>=0.30", "pydantic>=2"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

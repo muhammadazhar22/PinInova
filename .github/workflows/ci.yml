@@ -1,0 +1,72 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -r lint
+      - run: pnpm -r typecheck
+      - run: pnpm -r test -- --coverage
+      - run: pnpm --filter web build
+  analytics:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: services/analytics } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -e ".[dev]"
+      - run: ruff check .
+      - run: mypy pinpulse_analytics --ignore-missing-imports
+      - run: pytest -q
+      - name: Benchmark gate
+        run: |
+          python -m pinpulse_analytics.benchmark --json > /tmp/bench.json
+          python - <<'PY'
+          import json; b=json.load(open("benchmark_baseline.json"))["score"]; s=json.load(open("/tmp/bench.json"))["score"]
+          print(f"score {s:.3f} baseline {b:.3f}"); assert s >= b - 0.01, "detector benchmark regressed"
+          PY
+  e2e:
+    needs: [web]
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_PASSWORD: test, POSTGRES_DB: pinpulse }
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter web db:migrate
+        env: { DATABASE_URL: postgres://postgres:test@localhost:5432/pinpulse }
+      - run: pnpm --filter web exec playwright install --with-deps chromium
+      - run: pnpm --filter web e2e
+        env: { DATABASE_URL: postgres://postgres:test@localhost:5432/pinpulse, PINTEREST_MODE: fixtures }
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npx -y gitleaks@latest detect --no-git -v || true
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm audit --audit-level=high

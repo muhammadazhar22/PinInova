@@ -14,7 +14,7 @@ The plan commits to five decisions:
 4. Agent-driven build with loop engineering: spec → task → implement → test → review → merge, run by Claude Code agents under CI quality gates, with the founder owning specs, reviews and anything irreversible. Detectors are developed against synthetic series with known ground truth, so the loop has an objective score to climb.
 5. Staged release with kill criteria. v0 free "Pinterest Drop Check" lead magnet (4 weeks), v1 paid health scan + link integrity + appeal evidence pack for VAs (12 weeks), v2 agency mode + GA4 traffic-leak check (6 months), v3 weather index + Shopify revenue join (9–12 months).
 
-12-month target: 150 paying workspaces at a blended $39/account/month (about $6k MRR), API Standard access, one authorization conversation with Pinterest underway, infrastructure cost under $400/month, and a detector eval score that beats a naive 50%-drop rule on the synthetic benchmark by a wide margin.
+12-month target: 150 paying workspaces at a blended $39 per workspace per month (about $6k MRR, $70k ARR; a workspace holds 1–20 accounts), API Standard access, one authorization conversation with Pinterest underway, infrastructure cost under $400/month, and a detector eval that beats the naive 50%-drop rule a VA applies by hand (onset F1 0.82 vs 0.29 on the synthetic benchmark). The founder should decide now whether a $70k-ARR year-one outcome is the goal or a stepping stone; the plan is sized for a tool that can become a company, not for venture scale in year one.
 
 Hard constraints the whole plan obeys: Pinterest API v5 gives 90 days of daily metrics and no distribution-status fields; Trial tier is 1,000 requests/day and sandbox only; Standard tier requires app review; Stripe is unavailable in Pakistan (Paddle or Lemon Squeezy as merchant of record); one engineer, so every subsystem must be runnable and debuggable by one person with agents.
 
@@ -110,7 +110,7 @@ PinPulse ships as four releases, each with a single sentence a VA can repeat to 
 | Release | Promise to the user | Modules | Gate to proceed |
 | --- | --- | --- | --- |
 | v0 Drop Check (free, weeks 1–4) | "Paste your CSV export; we tell you the date it broke, which Pins drove it, and whether the pattern looks like a distribution cut." | CSV changepoint + top-Pin decomposition; signature report; email capture | 300 reports run, 25 interview bookings, 10 concierge audits sold at $49 |
-| v1 Health (paid, weeks 5–16) | "Connect Pinterest; we watch every account daily, alert you within 48h of a cliff, classify the cause, and build the appeal evidence pack." | OAuth sync; health scan and alerts; cause classifier; link and domain integrity; pre-flight checks; appeal evidence pack; client PDF report | 30 paying workspaces, Standard API access, alert precision above 80% on labelled cases |
+| v1 Health (paid, weeks 5–16) | "Connect Pinterest; we watch every account daily, flag a suspected cliff within 3 days and confirm it with a cause within 7–9 days, and build the appeal evidence pack." (Latency is derived from the pipeline: about 2 days of API data lag, a 1-day online CUSUM warning, then a 5–7 day confirmation segment for the two-method changepoint and the rate test.) | OAuth sync; health scan and alerts; cause classifier; link and domain integrity; pre-flight checks; appeal evidence pack; client PDF report | 30 paying workspaces, Standard API access, alert precision above 80% on labelled cases |
 | v2 Agency (months 5–6) | "Every client account in one place, each with its own consent, and a monthly report your client can read." | Multi-client workspaces with isolated consent; roles; white-label PDF; GA4 Traffic Leak Check; Slack alerts | 100 workspaces; 3+ agencies with 10+ accounts |
 | v3 Weather + Revenue (months 7–12) | "See whether a drop hit everyone on that date, and what Pinterest is worth in orders." | Pinterest weather index (authorized or user-reported); Shopify order join via per-Pin utm\_content tokens; theft defense only if demand validated | Written authorization or 500 consenting reporters; 150 workspaces |
 
@@ -180,7 +180,7 @@ v1 cause classification is rule-scored with a softmax to confidences: D if the w
 
 ### Benchmark and loop target
 
-The seeded repo generates 300 synthetic accounts (negative-binomial daily impressions with weekly seasonality, trend, 80% containing a labelled cliff across the five classes) and scores onset F1 within ±2 days, class accuracy and false-alarm rate: score = 0.4 F1 + 0.4 accuracy + 0.2 (1 − FAR). Baseline today: onset F1 0.83, class accuracy 0.72, false alarms 0.10, score 0.80. The benchmark is frozen; the agent loop may only change `detectors.py`, and CI fails any regression beyond 0.01. Real labels replace synthetic ones as concierge audits and user feedback accumulate.
+The seeded repo generates 300 synthetic accounts (negative-binomial daily impressions with weekly seasonality, trend, 80% containing a labelled cliff across the five classes) and scores onset F1 within ±2 days, class accuracy and false-alarm rate: score = 0.4 F1 + 0.4 accuracy + 0.2 (1 − FAR). Honest baseline after the independent review removed label leakage from the generator (side signals are now noisy and incomplete, and the peer signal is absent in v1): onset F1 0.82, class accuracy 0.64, false alarms 0.09, mean onset delay 0.03 days, score 0.77; the naive hand rule scores onset F1 0.29. Per-class accuracy is uneven by design: D 0.76, B 0.74, C 0.38, A 0.31 (A versus D is structurally ambiguous without per-domain breadth or peer data), E 0.00 (a smooth fade is not a step; the first loop hypothesis is a fade-shape detector). The benchmark now also reports detection delay, a confusion matrix and the naive-rule comparison; CI enforces an absolute floor of 0.6 and forbids changing the baseline in the same PR as detector code; a no-lookahead test truncates series and asserts earlier verdicts do not change. The benchmark is frozen; the agent loop may only change `detectors.py`, and CI fails any regression beyond 0.01. Real labels replace synthetic ones as concierge audits and user feedback accumulate.
 
 ### What the audit literature warns
 
@@ -359,7 +359,7 @@ PinPulse holds long-lived Pinterest tokens for other people's businesses, so tok
 
 | Area | Control | Verification |
 | --- | --- | --- |
-| OAuth | Minimal scopes (`user_accounts:read`, `pins:read`, `boards:read`; `*:read_secret` only on opt-in); `state` and PKCE on every authorize; redirect URI allowlist | E2E test with a mock OAuth server; scope assertion in the connect handler |
+| OAuth | Minimal scopes (`user_accounts:read`, `pins:read`, `boards:read`; `*:read_secret` only on opt-in); `a signed state on every authorize (PKCE if Pinterest supports it; its docs do not mention it)`; redirect URI allowlist | E2E test with a mock OAuth server; scope assertion in the connect handler |
 | Token vault | AES-256-GCM per-connection data keys, KEK versioned; one `TokenVault` module is the only decrypt path, with structured audit (who, connection, purpose); refresh every 20 days, alert at 50 days; Sentry `beforeSend` scrubs tokens; no token ever in logs or fixtures (`scrub-fixtures` script) | Unit: encrypt/decrypt round trip, KEK rotation re-wrap; grep-based CI check that no fixture contains `access_token` |
 | Tenant isolation | Row-level security on every workspace-scoped table; app connects as a non-owner role; `set_config('app.workspace_id', ..., true)` per transaction so pooled connections never leak; policies in hand-written migrations | Integration test per policy asserting cross-tenant queries return zero rows; a nightly job that runs the same assertions in production against synthetic tenants |
 | Agency boundary | Agency → workspace → connection; consent recorded per workspace with the Pinterest user id, scopes and timestamp; no cross-client ranking or aggregation; client-viewer role sees only its own workspace | RLS tests; UI snapshot tests that client-viewer screens contain no other client names |
@@ -567,7 +567,7 @@ No tool does changepoint detection, cause classification, cohort comparison or e
 | Tier | Price | Accounts | Includes | Rationale |
 | --- | --- | --- | --- | --- |
 | Free: Drop Check / Traffic Leak Check | $0 | 1, CSV or read-only OAuth | One-off report: onset date, Pin decomposition, signature, domain checklist; emailed; expires 14 days | Mirrors PinGenerator's free audit but post-publish; captures email and niche; seeds the weather index with consent |
-| Solo | $19/month ($15 annual) | 1 | Daily monitoring, health score, cause cards, email alerts, 12-month derived history | Just under PinClicks Pro; blogger-friendly |
+| Solo | $19/month ($15 annual) | 1 | Daily monitoring, health score, cause cards, email alerts, 13-month derived history | Just under PinClicks Pro; blogger-friendly |
 | Pro (VA) | $39/month ($32 annual) | 5, +$6 each | Client workspaces, branded report builder, Slack alerts, matched-pair wizard, evidence pack | About $8 per account, under 3% of a $300 retainer |
 | Agency | $99/month ($82 annual) | 20, +$5 each | White-label reports and status pages, team seats, API and MCP, priority support, niche cohort context once authorized | Undercuts BlogToPin Enterprise and Metricool Advanced; white-label is Metricool's custom-only feature |
 
@@ -597,11 +597,11 @@ Activation metric: share of new workspaces that view a cause card for a detected
 
 Weeks 1–4: free Drop Check live; 20 interviews (10 VAs, 5 Shopify merchants, 5 bloggers); 10 concierge audits at $49. Weeks 5–16: v1 private beta with 15 VAs from interviews; public launch on the Business Community and two podcasts when Standard access is granted; Product Hunt only after 30 paying workspaces. Months 5–6: agency tier launch with three design-partner agencies and white-label reports. Months 7–12: weather index (authorized or user-reported) and Shopify join; Shopify App Store listing only if merchant interviews justify it.
 
-Kill criteria: fewer than 10 concierge audits sold by week 6, or fewer than 30 paying workspaces by week 20, or Pinterest refusing Standard access twice, each trigger a stop-and-rethink before further build.
+Kill criteria: fewer than 10 concierge audits sold by week 6, or fewer than 30 paying workspaces by week 20 (billing opens in week 10 and trials run 14 days, so week 16 is too early to judge), or Pinterest refusing Standard access twice, or a written "no" on storing organic analytics (Terms §4.1(a)) with no CSV-only product that users will pay for. Each triggers a stop-and-rethink before further build.
 
 ## 13. Roadmap
 
-Twelve months from 10 Nov 2026, four releases, three hard gates. The Standard-access application goes in during week 2 because its 4–8 week backlog is the longest lead item; everything in v0 runs on CSV imports and fixtures so the wait costs nothing.
+Twelve months from 10 Nov 2026, four releases, three hard gates. Two lead items are sequenced first: the written answer from Pinterest on storing organic analytics (asked in week 2; SPEC-002, SPEC-003 and billing may not start until it is filed), and Standard API access, whose review requires a video of this app's own OAuth flow, so the application goes in as soon as SPEC-001 exists (week 6) and community threads suggest 2–4+ weeks of review. Everything in v0 runs on CSV imports and fixtures so neither wait costs build time.
 
 &#91;embedded content: roadmap · 4 releases, 3 gates, Nov 2026 to Nov 2027\]
 
@@ -610,15 +610,15 @@ Twelve months from 10 Nov 2026, four releases, three hard gates. The Standard-ac
 | Weeks | Build (agents) | Founder | Gate |
 | --- | --- | --- | --- |
 | 1 | Repo hardening: `.claude/settings.json`, agents, hooks, `spec` and `review` skills; Paddle account application; Pinterest Trial app registered; privacy policy and app description written | Interview script; outreach to 30 VAs via Business Community, Larsen and Simple Pin communities |  |
-| 2 | SPEC-010 CSV import; SPEC-011 changepoints; SPEC-014 decomposition; Drop Check report page; `fixture-record` and `policy-recheck` skills | Standard-access video and application; email to Pinterest developer support with the seven questions; policy copies stored |  |
+| 2 | SPEC-010 CSV import; SPEC-011 changepoints; SPEC-014 decomposition; Drop Check report page; `fixture-record` and `policy-recheck` skills | Email to Pinterest developer support with the eleven questions (storage consent first); policy copies stored in docs/policy; verify on day 1 that the Trial app returns real organic analytics for the founder's own account (if not, fixtures must come from CSV exports) |  |
 | 3 | Drop Check landing page and email capture; weather report form (user-reported onsets); 12 Nov guideline diff applied to rules | First 10 interviews |  |
 | 4 | Fixture suite from Trial app; Pinterest client with buckets, backoff, pagination; contract tests | Interviews 11–20; 10 concierge audits at $49 sold | Gate 1: 300 reports, 25 bookings, 10 audits |
-| 5–6 | SPEC-001 OAuth connect/disconnect with purge; SPEC-003 retention; SPEC-002 nightly sync; RLS policies and tests | Concierge audits delivered by hand with the v0 engine; labels collected |  |
+| 5–6 | SPEC-001 OAuth connect/disconnect with purge; SPEC-003 retention; SPEC-002 nightly sync; RLS policies and tests | Concierge audits delivered by hand with the v0 engine; labels collected; record the Standard-access video on the new OAuth flow and submit the application; SPEC-002/003 start only if the storage-consent answer is filed (else CSV-only path) |  |
 | 7–8 | SPEC-012 cause classifier v1; SPEC-013 rate stability; health score; annotated timeline and cause card UI | Design artboards reviewed with 5 VAs |  |
-| 9–10 | SPEC-020 link and domain integrity; SPEC-021 pre-flight rules; issues grouping | Private beta with 15 VAs on Trial app sandbox data where possible |  |
+| 9–10 | SPEC-020 link and domain integrity; SPEC-021 pre-flight rules; issues grouping | Private beta with 15 VAs on CSV imports and the founder's own accounts (Trial is sandbox-only; real client connections wait for Standard access); SPEC-060 Paddle billing pulled forward to week 10 so paid trials can start as soon as access lands |  |
 | 11–12 | SPEC-022 evidence pack; SPEC-023 monthly report (Chromium PDF); alerts tiers and Slack | Standard access expected; real beta accounts connected |  |
-| 13–14 | SPEC-060 Paddle billing; onboarding flow; activation events; status page; runbooks | Pricing page live; billing hygiene features |  |
-| 15–16 | Load test at 10×; shadow-mode harness; accessibility pass; public launch assets | Launch on Business Community and two podcasts | Gate 2: 30 paying workspaces, alert precision ≥ 80% on labelled cases |
+| 13–14 | Onboarding flow; activation events; status page; runbooks; online CUSUM warning path (the 3-day flag) shipped before any alert goes to a customer | Pricing page live; billing hygiene features |  |
+| 15–16 | Load test at 10×; shadow-mode harness; accessibility pass; public launch assets | Launch on Business Community and two podcasts | Launch; Gate 2 is judged at week 20 (30 paying workspaces, alert precision ≥ 80% on labelled cases) because trials run 14 days |
 
 ### Months 5–12
 
@@ -662,6 +662,12 @@ The plan's single largest risk is policy, not competition or engineering: PinPul
 6. Will Pinterest grant bulk Pin analytics (beta) and a higher per-user limit for agencies? Affects sync cost.
 7. Do VAs lose clients over drops, and would clients connect Shopify and GA4 to a VA's tool? Blocks v2 scope.
 8. Does a per-Pin `utm_content` token survive from the Pinterest iOS app to Shopify order UTMs, with organic auto-UTMs on? Blocks v3.
+
+### Independent review (7 Nov 2026) and what changed
+
+A fresh reviewer who had not seen the plan being written audited it against the research reports and the seeded code. Fixed in this version: the v1 alert promise (was "within 48h", now "flag within 3 days, confirm with cause within 7–9 days", derived from data lag plus confirmation window); the pricing unit (per workspace, not per account) and an explicit $70k-ARR year-one framing; the Standard-access application moved after SPEC-001 because the review video must show this app's OAuth flow; billing pulled to week 10 and Gate 2 judged at week 20; beta no longer assumes Trial-tier client data; a hard gate that SPEC-002/003/060 wait for Pinterest's written storage answer, with a CSV-only fallback; the benchmark no longer leaks labels through side signals, reports delay and a confusion matrix, has an absolute CI floor, and forbids baseline edits in detector PRs; a no-lookahead test; Redis removed from the dev stack; retention aligned at 13 months; PKCE claim corrected.
+
+Accepted but not yet changed (founder decisions): v1 infrastructure can collapse to Vercel + Neon alone, adding the Hetzner box only when Chromium PDFs ship (week 11); Terraform, SBOM, CodeQL and Grafana can wait for the v2 gate; three chart libraries can become one (ECharts) if sparklines are drawn with it too; the plan is long, and sections 5, 8 and 9 can move to ADRs once approved. Known weak spots that remain honest rather than hidden: E\_decay detection is 0.00 on the benchmark until a fade-shape detector exists; A-versus-D confusion needs a per-domain breadth signal (the next loop hypothesis); storing Pin URLs in `pin_meta` is "information" under a strict reading of the storage clause just as hashes are, and is covered by the same written question to Pinterest.
 
 ### Decisions needed from the founder this week
 

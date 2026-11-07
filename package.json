@@ -1,0 +1,9 @@
+{
+  "name": "pinpulse",
+  "private": true,
+  "packageManager": "pnpm@9.12.0",
+  "scripts": {
+    "dev": "docker compose up -d postgres && pnpm --filter web dev",
+    "bench": "cd services/analytics && python3 -m pinpulse_analytics.benchmark"
+  }
+}

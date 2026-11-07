@@ -31,12 +31,20 @@ jobs:
       - run: ruff check .
       - run: mypy pinpulse_analytics --ignore-missing-imports
       - run: pytest -q
+      - name: Baseline may not change in the same PR as detector code
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch origin ${{ github.base_ref }} --depth=1
+          changed=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          if echo "$changed" | grep -q "benchmark_baseline.json" && echo "$changed" | grep -q "pinpulse_analytics/detectors.py"; then
+            echo "Update benchmark_baseline.json in a separate PR after the detector change merges"; exit 1; fi
       - name: Benchmark gate
         run: |
           python -m pinpulse_analytics.benchmark --json > /tmp/bench.json
           python - <<'PY'
           import json; b=json.load(open("benchmark_baseline.json"))["score"]; s=json.load(open("/tmp/bench.json"))["score"]
           print(f"score {s:.3f} baseline {b:.3f}"); assert s >= b - 0.01, "detector benchmark regressed"
+          assert s >= 0.6, "detector benchmark below absolute floor 0.6"
           PY
   e2e:
     needs: [web]

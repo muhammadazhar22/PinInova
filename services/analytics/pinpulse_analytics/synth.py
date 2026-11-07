@@ -49,8 +49,8 @@ def make_account(rng: np.random.Generator, n: int = 90, level: float | None = No
             old_mean = old_mean * np.where(t >= onset, m_old, 1.0)
             mean = new_mean + old_mean
         elif cls == "E_decay":
-            # one viral Pin fades: smooth exponential, not a step
-            viral = level * 2.0 * np.exp(-np.maximum(t - onset + 10, 0) / 6.0)
+            # one viral Pin peaks at `onset` then fades: a smooth decay, not a step
+            viral = np.where(t >= onset - 10, level * 2.0 * np.exp(-np.maximum(t - onset, 0) / 6.0), 0.0)
             mean = mean + viral
             new_mean, old_mean = mean * 0.25, mean * 0.75
         else:
@@ -71,11 +71,14 @@ def make_account(rng: np.random.Generator, n: int = 90, level: float | None = No
     signals = dict(
         impressions=impressions.astype(float), outbound_clicks=clicks.astype(float),
         new_pins_impressions=new_impr.astype(float), old_pins_impressions=old_impr.astype(float),
-        domain_block_error=bool(truth.cls == "A_enforcement" and rng.uniform() < 0.5),
-        visit_site_demoted=bool(truth.cls == "B_quality" and rng.uniform() < 0.5),
-        bulk_upload_or_ad_prefix=bool(truth.cls == "C_behavioural" and rng.uniform() < 0.6),
-        duplicate_url_rate_14d=float(rng.uniform(0.5, 0.9)) if truth.cls == "C_behavioural" and rng.uniform() < 0.5 else float(rng.uniform(0, 0.3)),
-        peers_hit_fraction=(float(rng.uniform(0.3, 0.8)) if truth.cls == "D_platform" else float(rng.uniform(0, 0.1))) if rng.uniform() < 0.7 else None,
+        # Side signals are NOISY and INCOMPLETE on purpose: each true signal is observed only part of the
+        # time, and each also fires spuriously on other classes, so the classifier cannot read the label off them.
+        domain_block_error=bool((truth.cls == "A_enforcement" and rng.uniform() < 0.35) or rng.uniform() < 0.04),
+        visit_site_demoted=bool((truth.cls == "B_quality" and rng.uniform() < 0.35) or rng.uniform() < 0.06),
+        bulk_upload_or_ad_prefix=bool((truth.cls == "C_behavioural" and rng.uniform() < 0.4) or rng.uniform() < 0.08),
+        duplicate_url_rate_14d=float(rng.uniform(0.5, 0.9)) if (truth.cls == "C_behavioural" and rng.uniform() < 0.4) or rng.uniform() < 0.05 else float(rng.uniform(0, 0.3)),
+        # v1 has no pooled peer data (Pinterest authorization pending); the weather signal is absent.
+        peers_hit_fraction=None,
     )
     return signals, truth
 

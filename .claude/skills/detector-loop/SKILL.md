@@ -5,7 +5,7 @@ description: Run the PinPulse detector improvement loop — pick the weakest ben
 
 # Detector improvement loop
 
-Goal: raise `python -m pinpulse_analytics.benchmark` score without breaking `pytest`. One hypothesis per iteration. Max 8 iterations per session, then report.
+Goal: raise `python -m pinpulse_analytics.benchmark` score without breaking `pytest`. One hypothesis per iteration. Max 5 iterations per session, then report (repair-loop studies show gains stop after 3–5).
 
 ## Loop
 1. Run `python -m pinpulse_analytics.benchmark --json` and `pytest -q`. Record all metrics in `docs/detector-log.md` (date, commit, metrics).
@@ -14,11 +14,11 @@ Goal: raise `python -m pinpulse_analytics.benchmark` score without breaking `pyt
 4. Write a failing unit test that captures the specific failure (find 3 failing synthetic accounts via `scripts/bench_failures.py`, assert on one).
 5. Make the smallest change in `detectors.py`. Do not touch `synth.py` (the benchmark is frozen; changing it is a human decision).
 6. Re-run benchmark on seeds 7, 11, 23 with n=300. Accept only if mean score improves ≥ 0.005 AND no metric drops > 0.02 AND pytest passes.
-7. Accepted → update `benchmark_baseline.json` (seed 7), commit with message `detector: <hypothesis> (+0.0xx)`. Rejected → `git checkout -- .` and log why.
-8. After 8 iterations or 3 consecutive rejections, stop and write a summary with the next 3 hypotheses.
+7. Accepted → commit with message `detector: <hypothesis> (+0.0xx)`; open a SEPARATE follow-up PR that updates `benchmark_baseline.json` (CI forbids changing baseline and detector in one PR). Rejected → `git checkout -- .` and log why.
+8. After 5 iterations or 3 consecutive rejections, stop and write a summary with the next 3 hypotheses.
 
 ## Rules
-- No lookahead: detectors must only use data available at the alert date (no future days).
+- No lookahead: detectors must only use data available at the alert date (no future days). `tests/test_no_lookahead.py` truncates series after day t and asserts verdicts dated before t do not change.
 - Keep functions pure and typed; add a docstring with the math for any new statistic.
 - If an improvement needs a new signal from the API, open a spec stub instead of faking it in synth.
 - Never raise `min_drop` above 0.5 or widen the ±2-day match to pass the benchmark.

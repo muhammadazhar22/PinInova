@@ -225,9 +225,19 @@ def diagnose(s: Signals, min_drop: float = 0.3) -> Diagnosis:
     if s.visit_site_demoted:
         sc["B_quality"] += 2.0; ev.append("Visit-site button demoted")
     if lbf <= 0:
-        sc["D_platform"] += 1.5; sc["B_quality"] += 0.5; ev.append("Click rate unchanged: distribution cut, not content")
+        sc["D_platform"] += 1.0; sc["A_enforcement"] += 0.75; sc["C_behavioural"] += 0.5
+        ev.append("Click rate unchanged: distribution cut, not content")
     else:
-        sc["E_decay"] += 1.0; sc["C_behavioural"] += 0.5; ev.append("Click rate changed with the drop")
+        sc["B_quality"] += 1.5; sc["E_decay"] += 0.5; ev.append("Click rate changed with the drop")
+    # shape of the drop: a step (platform/enforcement) vs a smooth fade (one viral Pin decaying)
+    seg = s.impressions[max(0, cp - 3):cp + 10]
+    if len(seg) >= 8:
+        ratio_first = (seg[3] + 1) / (seg[0] + 1) if len(seg) > 3 else 1.0
+        ratio_rest = (seg[-1] + 1) / (seg[3] + 1) if len(seg) > 3 else 1.0
+        if ratio_first > 0.6 and ratio_rest < 0.5:
+            sc["E_decay"] += 2.0; ev.append("Gradual fade rather than a step")
+        elif ratio_first < 0.5:
+            sc["D_platform"] += 0.5; sc["A_enforcement"] += 0.5
     if s.new_pins_impressions is not None and s.old_pins_impressions is not None:
         new_a = float(np.mean(s.new_pins_impressions[cp:cp + w])) if len(s.new_pins_impressions) > cp else 0.0
         old_b = float(np.mean(s.old_pins_impressions[max(0, cp - w):cp]))

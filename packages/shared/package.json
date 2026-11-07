@@ -1,0 +1,6 @@
+{
+  "name": "@pinpulse/shared",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": { "lint": "echo ok", "typecheck": "echo ok", "test": "echo ok" }
+}

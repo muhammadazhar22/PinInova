@@ -5,7 +5,7 @@ Read `specs/README.md` before any task. Every change traces to a spec ID (e.g. `
 
 ## Repo map
 - `apps/web` — Next.js (App Router, TypeScript). UI, auth, billing, OAuth, job enqueueing. Modular monolith: `src/modules/<name>` with `index.ts` as the only public surface.
-- `services/analytics` — Python 3.11 package `pinpulse_analytics`. Pure detection math + FastAPI wrapper. **No network calls to Pinterest from here.**
+- `services/analytics` — Python 3.12 package `pinpulse_analytics`. Pure detection math + FastAPI wrapper. **No network calls to Pinterest from here.**
 - `packages/shared` — zod schemas + generated types shared by web and analytics (JSON Schema export).
 - `infra` — Terraform/SST + Dockerfiles + runbooks.
 - `specs` — one markdown file per feature spec; status in frontmatter.
@@ -19,8 +19,8 @@ Read `specs/README.md` before any task. Every change traces to a spec ID (e.g. `
 5. No "recovery guarantee" copy anywhere in UI or email. Use "likely cause", "evidence", "confidence".
 
 ## Engineering rules
-- TypeScript strict; `pnpm lint typecheck test` must pass before any PR. Python: `ruff`, `mypy --strict` on `pinpulse_analytics`, `pytest`.
-- Detector changes must keep `python -m pinpulse_analytics.benchmark` score ≥ `benchmark_baseline.json` − 0.01. Improvements update the baseline in the same PR with the new number in the PR body.
+- TypeScript strict; `pnpm lint typecheck test` must pass before any PR. Python: `ruff`, `mypy` on `pinpulse_analytics` (strict mode is a v1 gate task), `pytest`.
+- Detector changes must keep `python -m pinpulse_analytics.benchmark` score ≥ `benchmark_baseline.json` − 0.01. Improvements are followed by a separate PR that updates the baseline; CI rejects baseline + detector changes in one PR. The score must also stay above the absolute floor 0.6.
 - All Pinterest API calls go through `apps/web/src/modules/pinterest/client.ts` (rate limiter, retries, fixture recording). Contract tests run against recorded fixtures in `apps/web/test/fixtures/pinterest/`.
 - Migrations: `drizzle-kit generate`; never edit a migration after merge.
 - Secrets: never in code or fixtures; fixtures are scrubbed by `scripts/scrub-fixtures.ts`.
@@ -31,7 +31,8 @@ Read `specs/README.md` before any task. Every change traces to a spec ID (e.g. `
 2. Write failing tests for the criteria first.
 3. Implement the smallest change that passes; run the full gate locally.
 4. Self-review with `/review` checklist (`.claude/skills/review/SKILL.md`), fix, then open PR.
-5. Stop and ask a human when: a spec contradicts a non-negotiable; a change touches billing, OAuth scopes, data deletion, or Pinterest policy text; a migration drops or renames a column; CI is red for a reason outside the task.
+5. Hard gate: SPEC-002 (sync), SPEC-003 (retention) and SPEC-060 (billing) may not be marked `in-progress` until `docs/policy/pinterest-storage-consent.md` holds Pinterest's written answer on Terms §4.1(a). If the answer is no, the fallback is SPEC-010 (user CSV imports) as the only history source.
+6. Stop and ask a human when: a spec contradicts a non-negotiable; a change touches billing, OAuth scopes, data deletion, or Pinterest policy text; a migration drops or renames a column; CI is red for a reason outside the task.
 
 ## Commands
 - `pnpm dev` (web + analytics via docker compose), `pnpm test`, `pnpm e2e`, `pnpm bench` (runs the analytics benchmark).

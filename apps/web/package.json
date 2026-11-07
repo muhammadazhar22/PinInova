@@ -1,0 +1,14 @@
+{
+  "name": "web",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "echo \"SPEC-001: scaffold Next.js 16 app here (create-next-app --ts --app --tailwind)\"",
+    "lint": "echo lint: no sources yet",
+    "typecheck": "echo typecheck: no sources yet",
+    "test": "echo test: no sources yet",
+    "build": "echo build: no sources yet",
+    "db:migrate": "echo migrate: no schema yet",
+    "e2e": "echo e2e: no app yet"
+  }
+}

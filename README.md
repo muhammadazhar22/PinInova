@@ -15,7 +15,7 @@ docs                    ADRs, threat model, policy notes, detector log
 ## Quick start
 ```
 pnpm install
-docker compose up -d postgres redis
+docker compose up -d postgres
 pnpm dev                      # web on :3000, analytics on :8000
 cd services/analytics && pip install -e ".[dev]" && pytest && python -m pinpulse_analytics.benchmark
 ```

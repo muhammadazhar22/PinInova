@@ -11,7 +11,7 @@ app = FastAPI(title="pinpulse-analytics", version="0.1.0")
 
 
 class DiagnoseIn(BaseModel):
-    impressions: list[float] = Field(min_length=14, max_length=90)
+    impressions: list[float] = Field(min_length=14, max_length=560)  # API gives 90 days; CSV imports up to ~1.5 years
     outbound_clicks: list[float]
     new_pins_impressions: list[float] | None = None
     old_pins_impressions: list[float] | None = None

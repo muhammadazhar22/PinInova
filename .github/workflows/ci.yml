@@ -85,6 +85,7 @@ jobs:
           BETTER_AUTH_SECRET=$(openssl rand -base64 32)
           TOKEN_KEK_V1=$(openssl rand -base64 32)
           TOKEN_KEK_CURRENT=v1
+          ANALYTICS_TOKEN=$(openssl rand -base64 32)
           PINTEREST_MODE=mock
           INTEGRITY_ALLOW_PRIVATE_HOSTS=true
           CHROME_PATH=/usr/bin/google-chrome

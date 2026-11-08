@@ -24,7 +24,7 @@ Requirements: Node 22 + pnpm 9, Python 3.12, Postgres 16, Chrome (for PDFs and b
 pnpm install
 pip install -e "services/analytics[dev]"
 docker compose up -d postgres
-cp .env.example apps/web/.env.local     # fill BETTER_AUTH_SECRET and TOKEN_KEK_V1 (openssl rand -base64 32),
+cp .env.example apps/web/.env.local     # fill BETTER_AUTH_SECRET, TOKEN_KEK_V1 and ANALYTICS_TOKEN (openssl rand -base64 32),
                                         # set INTEGRITY_ALLOW_PRIVATE_HOSTS=true for the local mock websites
 scripts/dev-stack.sh                    # mock Pinterest :4010/:4011, analytics :8000, web :3000, worker
 ```

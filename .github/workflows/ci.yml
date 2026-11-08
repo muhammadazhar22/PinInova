@@ -71,7 +71,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
-      - run: pip install -e "services/analytics"
+      - run: pip install -e "services/analytics[api]"
       # Pipeline e2e: OAuth → sync → integrity → analysis → alerts → reports → consent → purge, all 8 mock scenarios.
       - run: scripts/test-e2e.sh
         env: { CHROME_PATH: /usr/bin/google-chrome }

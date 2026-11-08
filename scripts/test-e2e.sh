@@ -11,7 +11,7 @@ trap cleanup EXIT
 
 for url in http://127.0.0.1:4010/__mock/state http://127.0.0.1:4011/ http://127.0.0.1:8000/healthz; do
   for _ in $(seq 1 60); do curl -fsS -o /dev/null "$url" 2>/dev/null && break; sleep 0.5; done
-  curl -fsS -o /dev/null "$url" || { echo "not ready: $url"; tail -50 "$LOG"/*.log; exit 1; }
+  curl -fsS -o /dev/null "$url" || { echo "not ready: $url"; tail -n 50 "$LOG"/*.log; exit 1; }
 done
 
 cd "$ROOT/apps/web"

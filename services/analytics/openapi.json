@@ -1,0 +1,1713 @@
+{
+  "components": {
+    "schemas": {
+      "AgeBreadth": {
+        "additionalProperties": false,
+        "properties": {
+          "0-7": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "0-7"
+          },
+          "15-29": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "15-29"
+          },
+          "30+": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "30+"
+          },
+          "8-14": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "8-14"
+          }
+        },
+        "title": "AgeBreadth",
+        "type": "object"
+      },
+      "AgeBuckets": {
+        "additionalProperties": false,
+        "description": "Daily impressions of Pins grouped by Pin age (days since publish) at that date.",
+        "properties": {
+          "0-7": {
+            "anyOf": [
+              {
+                "items": {
+                  "minimum": 0.0,
+                  "type": "number"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "0-7"
+          },
+          "15-29": {
+            "anyOf": [
+              {
+                "items": {
+                  "minimum": 0.0,
+                  "type": "number"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "15-29"
+          },
+          "30+": {
+            "anyOf": [
+              {
+                "items": {
+                  "minimum": 0.0,
+                  "type": "number"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "30+"
+          },
+          "8-14": {
+            "anyOf": [
+              {
+                "items": {
+                  "minimum": 0.0,
+                  "type": "number"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "8-14"
+          }
+        },
+        "title": "AgeBuckets",
+        "type": "object"
+      },
+      "BreadthOut": {
+        "additionalProperties": false,
+        "properties": {
+          "age": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AgeBreadth"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "domains": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/DomainBreadth"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Domains"
+          },
+          "linked_ratio": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linked Ratio"
+          },
+          "unlinked_ratio": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unlinked Ratio"
+          }
+        },
+        "title": "BreadthOut",
+        "type": "object"
+      },
+      "ClassProb": {
+        "additionalProperties": false,
+        "properties": {
+          "cause": {
+            "enum": [
+              "A_enforcement",
+              "B_quality",
+              "C_behavioural",
+              "D_platform",
+              "E_decay",
+              "M_measurement"
+            ],
+            "title": "Cause",
+            "type": "string"
+          },
+          "probability": {
+            "title": "Probability",
+            "type": "number"
+          }
+        },
+        "required": [
+          "cause",
+          "probability"
+        ],
+        "title": "ClassProb",
+        "type": "object"
+      },
+      "ConcentrationOut": {
+        "additionalProperties": false,
+        "properties": {
+          "gini": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gini"
+          },
+          "top1_share": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Top1 Share"
+          },
+          "top_pin_share": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Top Pin Share"
+          }
+        },
+        "title": "ConcentrationOut",
+        "type": "object"
+      },
+      "CsvParseRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "csv": {
+            "maxLength": 20000000,
+            "minLength": 1,
+            "title": "Csv",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "pinterest_analytics",
+              "ga4_sessions",
+              "shopify_orders",
+              "pin_drafts"
+            ],
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "csv",
+          "kind"
+        ],
+        "title": "CsvParseRequest",
+        "type": "object"
+      },
+      "CsvParseResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "columns_matched": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Columns Matched",
+            "type": "object"
+          },
+          "date_range": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date Range"
+          },
+          "kind": {
+            "enum": [
+              "pinterest_analytics",
+              "ga4_sessions",
+              "shopify_orders",
+              "pin_drafts"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "object"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "kind",
+          "rows",
+          "columns_matched",
+          "warnings",
+          "date_range"
+        ],
+        "title": "CsvParseResponse",
+        "type": "object"
+      },
+      "DiagnoseRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "age_buckets": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AgeBuckets"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "dates": {
+            "anyOf": [
+              {
+                "items": {
+                  "format": "date",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dates"
+          },
+          "domains": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/DomainSeries"
+                },
+                "maxItems": 200,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Domains"
+          },
+          "impressions": {
+            "items": {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            "maxItems": 560,
+            "minItems": 14,
+            "title": "Impressions",
+            "type": "array"
+          },
+          "min_drop": {
+            "default": 0.5,
+            "exclusiveMaximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Min Drop",
+            "type": "number"
+          },
+          "outbound_clicks": {
+            "items": {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            "maxItems": 560,
+            "minItems": 14,
+            "title": "Outbound Clicks",
+            "type": "array"
+          },
+          "pin_clicks": {
+            "anyOf": [
+              {
+                "items": {
+                  "minimum": 0.0,
+                  "type": "number"
+                },
+                "maxItems": 560,
+                "minItems": 14,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pin Clicks"
+          },
+          "pins": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PinTotals"
+                },
+                "maxItems": 20000,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pins"
+          },
+          "provisional_days": {
+            "default": 2,
+            "maximum": 7.0,
+            "minimum": 0.0,
+            "title": "Provisional Days",
+            "type": "integer"
+          },
+          "saves": {
+            "anyOf": [
+              {
+                "items": {
+                  "minimum": 0.0,
+                  "type": "number"
+                },
+                "maxItems": 560,
+                "minItems": 14,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Saves"
+          },
+          "signals": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DiagnoseSignals"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "unlinked_impressions": {
+            "anyOf": [
+              {
+                "items": {
+                  "minimum": 0.0,
+                  "type": "number"
+                },
+                "maxItems": 560,
+                "minItems": 14,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unlinked Impressions"
+          }
+        },
+        "required": [
+          "impressions",
+          "outbound_clicks"
+        ],
+        "title": "DiagnoseRequest",
+        "type": "object"
+      },
+      "DiagnoseResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "breadth": {
+            "$ref": "#/components/schemas/BreadthOut"
+          },
+          "classes": {
+            "items": {
+              "$ref": "#/components/schemas/ClassProb"
+            },
+            "title": "Classes",
+            "type": "array"
+          },
+          "concentration": {
+            "$ref": "#/components/schemas/ConcentrationOut"
+          },
+          "confidence": {
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Confidence",
+            "type": "string"
+          },
+          "detector_version": {
+            "title": "Detector Version",
+            "type": "string"
+          },
+          "drop": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DropOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "methods_agree": {
+            "title": "Methods Agree",
+            "type": "boolean"
+          },
+          "onset_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Onset Date"
+          },
+          "onset_index": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Onset Index"
+          },
+          "p_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P Value"
+          },
+          "pin_contributions": {
+            "items": {
+              "$ref": "#/components/schemas/PinContribution"
+            },
+            "title": "Pin Contributions",
+            "type": "array"
+          },
+          "rate": {
+            "$ref": "#/components/schemas/RateOut"
+          },
+          "shape": {
+            "enum": [
+              "step",
+              "fade",
+              "unknown"
+            ],
+            "title": "Shape",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "none",
+              "warning",
+              "drop"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "warning_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Warning Date"
+          },
+          "warning_index": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Warning Index"
+          }
+        },
+        "required": [
+          "status",
+          "onset_index",
+          "onset_date",
+          "warning_index",
+          "warning_date",
+          "drop",
+          "methods_agree",
+          "p_value",
+          "rate",
+          "breadth",
+          "pin_contributions",
+          "concentration",
+          "shape",
+          "classes",
+          "evidence",
+          "confidence",
+          "detector_version"
+        ],
+        "title": "DiagnoseResponse",
+        "type": "object"
+      },
+      "DiagnoseSignals": {
+        "additionalProperties": false,
+        "properties": {
+          "bulk_upload_or_ad_prefix": {
+            "default": false,
+            "title": "Bulk Upload Or Ad Prefix",
+            "type": "boolean"
+          },
+          "domain_block_error": {
+            "default": false,
+            "title": "Domain Block Error",
+            "type": "boolean"
+          },
+          "duplicate_url_rate_14d": {
+            "default": 0.0,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Duplicate Url Rate 14D",
+            "type": "number"
+          },
+          "ga4_pinterest_vs_direct_gap": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ga4 Pinterest Vs Direct Gap"
+          },
+          "linked_new_impr": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linked New Impr"
+          },
+          "peers_hit_fraction": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Peers Hit Fraction"
+          },
+          "unlinked_new_impr": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unlinked New Impr"
+          },
+          "visit_site_demoted": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visit Site Demoted"
+          },
+          "yoy_same_window_ratio": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Yoy Same Window Ratio"
+          }
+        },
+        "title": "DiagnoseSignals",
+        "type": "object"
+      },
+      "DomainBreadth": {
+        "additionalProperties": false,
+        "properties": {
+          "domain": {
+            "title": "Domain",
+            "type": "string"
+          },
+          "ratio": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ratio"
+          },
+          "share_before": {
+            "title": "Share Before",
+            "type": "number"
+          }
+        },
+        "required": [
+          "domain",
+          "ratio",
+          "share_before"
+        ],
+        "title": "DomainBreadth",
+        "type": "object"
+      },
+      "DomainSeries": {
+        "additionalProperties": false,
+        "properties": {
+          "domain": {
+            "maxLength": 253,
+            "minLength": 1,
+            "title": "Domain",
+            "type": "string"
+          },
+          "impressions": {
+            "items": {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            "title": "Impressions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "domain",
+          "impressions"
+        ],
+        "title": "DomainSeries",
+        "type": "object"
+      },
+      "DropOut": {
+        "additionalProperties": false,
+        "properties": {
+          "after_median": {
+            "title": "After Median",
+            "type": "number"
+          },
+          "before_median": {
+            "title": "Before Median",
+            "type": "number"
+          },
+          "effect": {
+            "title": "Effect",
+            "type": "number"
+          },
+          "ratio": {
+            "title": "Ratio",
+            "type": "number"
+          }
+        },
+        "required": [
+          "before_median",
+          "after_median",
+          "ratio",
+          "effect"
+        ],
+        "title": "DropOut",
+        "type": "object"
+      },
+      "DuplicateItem": {
+        "additionalProperties": false,
+        "properties": {
+          "image_base64": {
+            "anyOf": [
+              {
+                "maxLength": 20000000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Base64"
+          },
+          "phash": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-fA-F]{16}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phash"
+          },
+          "pin_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Pin Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "pin_id"
+        ],
+        "title": "DuplicateItem",
+        "type": "object"
+      },
+      "DuplicatesRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DuplicateItem"
+            },
+            "maxItems": 5000,
+            "title": "Items",
+            "type": "array"
+          },
+          "return_hashes": {
+            "default": false,
+            "title": "Return Hashes",
+            "type": "boolean"
+          },
+          "threshold": {
+            "default": 8,
+            "maximum": 64.0,
+            "minimum": 0.0,
+            "title": "Threshold",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "DuplicatesRequest",
+        "type": "object"
+      },
+      "DuplicatesResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "clusters": {
+            "items": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "title": "Clusters",
+            "type": "array"
+          },
+          "duplicate_rate": {
+            "title": "Duplicate Rate",
+            "type": "number"
+          },
+          "hashes": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hashes"
+          }
+        },
+        "required": [
+          "clusters",
+          "duplicate_rate",
+          "hashes"
+        ],
+        "title": "DuplicatesResponse",
+        "type": "object"
+      },
+      "Evidence": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "supports": {
+            "items": {
+              "enum": [
+                "A_enforcement",
+                "B_quality",
+                "C_behavioural",
+                "D_platform",
+                "E_decay",
+                "M_measurement"
+              ],
+              "type": "string"
+            },
+            "title": "Supports",
+            "type": "array"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "text",
+          "supports"
+        ],
+        "title": "Evidence",
+        "type": "object"
+      },
+      "Finding": {
+        "additionalProperties": false,
+        "properties": {
+          "draft_index": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Draft Index"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "policy_ref": {
+            "title": "Policy Ref",
+            "type": "string"
+          },
+          "rule_id": {
+            "title": "Rule Id",
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "error",
+              "warning",
+              "info"
+            ],
+            "title": "Severity",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "official",
+              "vendor",
+              "hypothesis"
+            ],
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule_id",
+          "severity",
+          "source",
+          "draft_index",
+          "message",
+          "policy_ref"
+        ],
+        "title": "Finding",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "Health": {
+        "additionalProperties": false,
+        "properties": {
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok",
+          "version"
+        ],
+        "title": "Health",
+        "type": "object"
+      },
+      "HistoryItem": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "link": {
+            "title": "Link",
+            "type": "string"
+          }
+        },
+        "required": [
+          "link",
+          "created_at"
+        ],
+        "title": "HistoryItem",
+        "type": "object"
+      },
+      "PinContribution": {
+        "additionalProperties": false,
+        "properties": {
+          "delta": {
+            "title": "Delta",
+            "type": "number"
+          },
+          "pin_id": {
+            "title": "Pin Id",
+            "type": "string"
+          },
+          "share": {
+            "title": "Share",
+            "type": "number"
+          }
+        },
+        "required": [
+          "pin_id",
+          "delta",
+          "share"
+        ],
+        "title": "PinContribution",
+        "type": "object"
+      },
+      "PinDraft": {
+        "properties": {
+          "board": {
+            "default": "",
+            "title": "Board",
+            "type": "string"
+          },
+          "description": {
+            "default": "",
+            "title": "Description",
+            "type": "string"
+          },
+          "image_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Ref"
+          },
+          "link": {
+            "default": "",
+            "title": "Link",
+            "type": "string"
+          },
+          "scheduled_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduled At"
+          },
+          "title": {
+            "default": "",
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "title": "PinDraft",
+        "type": "object"
+      },
+      "PinTotals": {
+        "additionalProperties": false,
+        "properties": {
+          "after": {
+            "minimum": 0.0,
+            "title": "After",
+            "type": "number"
+          },
+          "before": {
+            "minimum": 0.0,
+            "title": "Before",
+            "type": "number"
+          },
+          "pin_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Pin Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "pin_id",
+          "before",
+          "after"
+        ],
+        "title": "PinTotals",
+        "type": "object"
+      },
+      "PreflightRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "drafts": {
+            "items": {
+              "$ref": "#/components/schemas/PinDraft"
+            },
+            "maxItems": 5000,
+            "title": "Drafts",
+            "type": "array"
+          },
+          "history": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/HistoryItem"
+                },
+                "maxItems": 50000,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "History"
+          },
+          "now": {
+            "title": "Now",
+            "type": "string"
+          }
+        },
+        "required": [
+          "drafts",
+          "now"
+        ],
+        "title": "PreflightRequest",
+        "type": "object"
+      },
+      "PreflightResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/Finding"
+            },
+            "title": "Findings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "findings"
+        ],
+        "title": "PreflightResponse",
+        "type": "object"
+      },
+      "RateOut": {
+        "additionalProperties": false,
+        "properties": {
+          "ctr_after": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ctr After"
+          },
+          "ctr_before": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ctr Before"
+          },
+          "log_bf": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Log Bf"
+          },
+          "post_impressions": {
+            "title": "Post Impressions",
+            "type": "integer"
+          },
+          "verdict": {
+            "enum": [
+              "stable",
+              "changed",
+              "insufficient"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "verdict",
+          "log_bf",
+          "ctr_before",
+          "ctr_after",
+          "post_impressions"
+        ],
+        "title": "RateOut",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "WeatherDay": {
+        "additionalProperties": false,
+        "properties": {
+          "date": {
+            "title": "Date",
+            "type": "string"
+          },
+          "fraction": {
+            "title": "Fraction",
+            "type": "number"
+          },
+          "insufficient": {
+            "default": false,
+            "title": "Insufficient",
+            "type": "boolean"
+          },
+          "level": {
+            "enum": [
+              "normal",
+              "elevated",
+              "platform_wide"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "log_bf": {
+            "title": "Log Bf",
+            "type": "number"
+          },
+          "tail_p": {
+            "title": "Tail P",
+            "type": "number"
+          }
+        },
+        "required": [
+          "date",
+          "fraction",
+          "log_bf",
+          "tail_p",
+          "level"
+        ],
+        "title": "WeatherDay",
+        "type": "object"
+      },
+      "WeatherRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "base_rate": {
+            "default": 0.0017,
+            "exclusiveMaximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Base Rate",
+            "type": "number"
+          },
+          "phi": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phi"
+          },
+          "windows": {
+            "items": {
+              "$ref": "#/components/schemas/WeatherWindow"
+            },
+            "maxItems": 2000,
+            "minItems": 1,
+            "title": "Windows",
+            "type": "array"
+          }
+        },
+        "required": [
+          "windows"
+        ],
+        "title": "WeatherRequest",
+        "type": "object"
+      },
+      "WeatherResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/WeatherDay"
+            },
+            "title": "Days",
+            "type": "array"
+          },
+          "model": {
+            "default": "binomial",
+            "enum": [
+              "binomial",
+              "beta_binomial"
+            ],
+            "title": "Model",
+            "type": "string"
+          },
+          "phi": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phi"
+          }
+        },
+        "required": [
+          "days"
+        ],
+        "title": "WeatherResponse",
+        "type": "object"
+      },
+      "WeatherWindow": {
+        "additionalProperties": false,
+        "properties": {
+          "active_reporters": {
+            "minimum": 0.0,
+            "title": "Active Reporters",
+            "type": "integer"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "reports": {
+            "minimum": 0.0,
+            "title": "Reports",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "date",
+          "reports",
+          "active_reporters"
+        ],
+        "title": "WeatherWindow",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Stateless detection and diagnosis engine for PinPulse. One tenant per request; nothing is stored; no Pinterest calls.",
+    "title": "pinpulse-analytics",
+    "version": "1.0.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/healthz": {
+      "get": {
+        "operationId": "healthz_healthz_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Healthz"
+      }
+    },
+    "/v1/csv/parse": {
+      "post": {
+        "operationId": "csv_parse_endpoint_v1_csv_parse_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CsvParseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CsvParseResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Csv Parse Endpoint"
+      }
+    },
+    "/v1/diagnose": {
+      "post": {
+        "operationId": "diagnose_endpoint_v1_diagnose_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiagnoseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiagnoseResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Diagnose Endpoint"
+      }
+    },
+    "/v1/duplicates": {
+      "post": {
+        "operationId": "duplicates_endpoint_v1_duplicates_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DuplicatesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DuplicatesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Duplicates Endpoint"
+      }
+    },
+    "/v1/preflight": {
+      "post": {
+        "operationId": "preflight_endpoint_v1_preflight_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreflightRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreflightResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Preflight Endpoint"
+      }
+    },
+    "/v1/weather": {
+      "post": {
+        "operationId": "weather_endpoint_v1_weather_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WeatherRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeatherResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Weather Endpoint"
+      }
+    }
+  }
+}

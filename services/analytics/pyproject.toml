@@ -1,16 +1,38 @@
 [project]
 name = "pinpulse-analytics"
-version = "0.1.0"
-description = "PinPulse detection and diagnosis engine"
+version = "1.0.0"
+description = "PinPulse detection and diagnosis engine (stateless; one tenant per request; no Pinterest calls)"
 requires-python = ">=3.11"
-dependencies = ["numpy>=1.26", "scipy>=1.11"]
+dependencies = [
+  "numpy>=2.0",          # np.bitwise_count for vectorised Hamming distance
+  "scipy>=1.11",
+  "statsmodels>=0.14",   # STL
+  "ruptures>=1.1.9",     # PELT
+  "pydantic>=2.6",
+  "pillow>=10",
+  "imagehash>=4.3",
+]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "hypothesis>=6", "ruff>=0.5", "mypy>=1.10"]
-api = ["fastapi>=0.115", "uvicorn>=0.30", "pydantic>=2"]
+api = ["fastapi>=0.115", "uvicorn>=0.30"]
+dev = ["pytest>=8", "hypothesis>=6", "ruff>=0.5", "mypy>=1.10", "httpx>=0.27", "fastapi>=0.115", "uvicorn>=0.30"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["pinpulse_analytics"]
 
 [tool.ruff]
 line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "C90"]
+ignore = ["E731", "B905"]  # zip(strict=) is noise for same-length arrays built in place
+
+[tool.ruff.lint.mccabe]
+max-complexity = 25
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

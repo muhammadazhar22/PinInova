@@ -1,0 +1,43 @@
+import { db, type Tx } from "@/lib/db";
+
+export type Plan = "trial" | "solo" | "pro" | "agency" | "canceled";
+
+export const PLANS: Record<Exclude<Plan, "canceled">, { label: string; priceUsd: number; accounts: number; extraUsd: number; whiteLabel: boolean; slack: boolean; trackedPins: number }> = {
+  trial: { label: "Trial (14 days)", priceUsd: 0, accounts: 5, extraUsd: 0, whiteLabel: false, slack: true, trackedPins: 300 },
+  solo: { label: "Solo", priceUsd: 19, accounts: 1, extraUsd: 0, whiteLabel: false, slack: false, trackedPins: 300 },
+  pro: { label: "Pro (VA)", priceUsd: 39, accounts: 5, extraUsd: 6, whiteLabel: false, slack: true, trackedPins: 1000 },
+  agency: { label: "Agency", priceUsd: 99, accounts: 20, extraUsd: 5, whiteLabel: true, slack: true, trackedPins: 1000 },
+};
+
+export interface Entitlements {
+  plan: Plan;
+  status: string;
+  accountLimit: number;
+  activeAccounts: number;
+  canConnect: boolean;
+  whiteLabel: boolean;
+  slack: boolean;
+  trackedPins: number;
+  trialEndsAt: Date | null;
+}
+
+export async function ensureSubscription(orgId: string) {
+  await db()`INSERT INTO subscription (org_id, plan, status, trial_ends_at) VALUES (${orgId}, 'trial', 'trialing', now() + interval '14 days')
+             ON CONFLICT (org_id) DO NOTHING`;
+}
+
+export async function entitlements(orgId: string, tx?: Tx): Promise<Entitlements> {
+  const sql = tx ?? db();
+  await ensureSubscription(orgId);
+  const [s] = await sql<{ plan: Plan; status: string; extra_accounts: number; trial_ends_at: Date | null }[]>`
+    SELECT plan, status, extra_accounts, trial_ends_at FROM subscription WHERE org_id = ${orgId}`;
+  const [{ n }] = (await sql<{ n: number }[]>`SELECT system_org_active_accounts(${orgId}) AS n`) as [{ n: number }];
+  const plan = s!.plan;
+  const trialExpired = plan === "trial" && s!.trial_ends_at !== null && s!.trial_ends_at < new Date();
+  if (plan === "canceled" || trialExpired) {
+    return { plan, status: trialExpired ? "trial_expired" : s!.status, accountLimit: 0, activeAccounts: n, canConnect: false, whiteLabel: false, slack: false, trackedPins: 50, trialEndsAt: s!.trial_ends_at };
+  }
+  const p = PLANS[plan];
+  const limit = p.accounts + (s!.extra_accounts ?? 0);
+  return { plan, status: s!.status, accountLimit: limit, activeAccounts: n, canConnect: n < limit, whiteLabel: p.whiteLabel, slack: p.slack, trackedPins: p.trackedPins, trialEndsAt: s!.trial_ends_at };
+}

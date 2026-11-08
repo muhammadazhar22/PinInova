@@ -32,6 +32,7 @@ jobs:
     defaults: { run: { working-directory: services/analytics } }
     steps:
       - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }   # the baseline guard diffs against the PR base branch
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - run: pip install -e ".[dev]"
@@ -41,7 +42,7 @@ jobs:
       - name: Baseline may not change in the same PR as detector code
         if: github.event_name == 'pull_request'
         run: |
-          git fetch origin ${{ github.base_ref }} --depth=1
+          git fetch origin ${{ github.base_ref }}
           changed=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
           if echo "$changed" | grep -q "benchmark_baseline.json" && echo "$changed" | grep -q "pinpulse_analytics/detectors.py"; then
             echo "Update benchmark_baseline.json in a separate PR after the detector change merges"; exit 1; fi

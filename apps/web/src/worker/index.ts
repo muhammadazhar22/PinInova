@@ -14,7 +14,7 @@ import { disconnect, refreshNow } from "@/modules/pinterest/connections";
 import { PinterestAuthError } from "@/modules/pinterest/errors";
 import { assertPurged, purgeConnection, runRetention } from "@/modules/privacy/purge";
 import { renderReportPdf } from "@/modules/reports/pdf";
-import { syncAccount } from "@/modules/sync/sync";
+import { InactiveConnectionError, syncAccount } from "@/modules/sync/sync";
 
 type Job<T> = { id: string; data: T };
 const log = (msg: string, extra: Record<string, unknown> = {}) => console.log(JSON.stringify({ t: new Date().toISOString(), msg, ...extra }));
@@ -47,19 +47,32 @@ export async function registerHandlers() {
 
   // Up to 20 accounts sync concurrently; each account's own rate gate keeps it within Pinterest's per-user limits.
   await w<{ connectionId: string; workspaceId: string }>(QUEUES.syncAccount, async (d) => {
-    const r = await syncAccount(d.workspaceId, d.connectionId);
-    await enqueue(QUEUES.analyzeAccount, d);
+    let r;
+    try {
+      r = await syncAccount(d.workspaceId, d.connectionId);
+    } catch (err) {
+      if (err instanceof InactiveConnectionError) return { skipped: err.status };
+      throw err;
+    }
+    // Pipeline: sync → integrity checks → analysis (uses duplicate/link signals, computes the health score) → alerts.
+    await enqueue(QUEUES.integrityChecks, d, { singletonKey: `integrity:${d.connectionId}` });
     return r;
   }, { localConcurrency: 20 });
 
   await w<{ connectionId: string; workspaceId: string }>(QUEUES.analyzeAccount, async (d) => {
     const r = await analyzeAccount(d.workspaceId, d.connectionId);
-    await enqueue(QUEUES.integrityChecks, d, { singletonKey: `integrity:${d.connectionId}` });
     await enqueue(QUEUES.evaluateAlerts, { workspaceId: d.workspaceId }, { singletonKey: `alerts:${d.workspaceId}` });
     return { status: r.result?.status ?? "insufficient_data", score: r.score };
   }, { localConcurrency: 4 });
 
-  await w<{ connectionId: string; workspaceId: string }>(QUEUES.integrityChecks, (d) => runIntegrityChecks(d.workspaceId, d.connectionId), { localConcurrency: 4 });
+  await w<{ connectionId: string; workspaceId: string }>(QUEUES.integrityChecks, async (d) => {
+    try {
+      return await runIntegrityChecks(d.workspaceId, d.connectionId);
+    } finally {
+      // Link checks are best-effort; analysis runs even if they fail. Manual "Run link checks" also refreshes the score.
+      await enqueue(QUEUES.analyzeAccount, { workspaceId: d.workspaceId, connectionId: d.connectionId });
+    }
+  }, { localConcurrency: 4 });
 
   await w<{ workspaceId: string }>(QUEUES.evaluateAlerts, async (d) => {
     const r = await evaluateAlerts(d.workspaceId, await orgOf(d.workspaceId));

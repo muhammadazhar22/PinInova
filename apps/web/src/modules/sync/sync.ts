@@ -8,6 +8,13 @@ import { clientFor, markNeedsReauth } from "@/modules/pinterest/connections";
 import { PinterestAuthError } from "@/modules/pinterest/errors";
 import type { Pin } from "@/modules/pinterest/types";
 
+/** The connection was disconnected, purged or needs re-authorization: the job is done, not failed. */
+export class InactiveConnectionError extends Error {
+  constructor(readonly status: string) {
+    super(`connection not active (${status})`);
+  }
+}
+
 export interface SyncResult {
   start: string;
   end: string;
@@ -31,7 +38,7 @@ export async function syncAccount(workspaceId: string, connectionId: string, opt
   const end = todayUtc(now);
   const conn = await withWorkspace(workspaceId, async (tx) => (await tx<{ last_synced_at: Date | null; status: string }[]>`
     SELECT last_synced_at, status FROM pinterest_connection WHERE id = ${connectionId}`)[0]);
-  if (!conn || conn.status !== "active") throw new Error(`connection not active (${conn?.status ?? "missing"})`);
+  if (!conn || conn.status !== "active") throw new InactiveConnectionError(conn?.status ?? "missing");
   const { org } = await one(db()<{ org: string }[]>`SELECT system_workspace_org(${workspaceId}::uuid) AS org`);
   const ent = await entitlements(org);
 

@@ -3,7 +3,8 @@ import { addDays, domainKey } from "@/lib/dates";
 import type { DiagnoseResponse } from "./analytics-client";
 
 /**
- * Health score = mean of the available sub-grades (each 0–100). Published formula, shown in the UI:
+ * Health score = mean of the available sub-grades (each 0–100), capped at the weakest sub-grade + 10 so one
+ * severe problem is never averaged away. Published formula, shown in the UI:
  * - Distribution: 100 with no drop; 65 during an unconfirmed warning; 100 × (1 − effect), floored at 10 and capped at 60, during a confirmed drop.
  * - Link quality: share of checked Pin links that return 2xx within 4 s with at most one redirect and no robots block.
  * - Domain trust: 100 if every linked domain is a claimed website and none blocks Pinterestbot; −25 per unclaimed domain, −40 per blocking robots.txt.
@@ -11,6 +12,11 @@ import type { DiagnoseResponse } from "./analytics-client";
  * - Cadence: 100 − 15 per week in the last 8 whose new-Pin count exceeds 3× the median week.
  * Bands: Weak 0–30, Fair 31–70, Good 71–90, Excellent 91–100.
  */
+/** Pinterest website status strings are unverified (mock uses verified/unverified); "unverified" must not count. */
+export function isClaimed(s: { status?: string }) {
+  return !s.status || (/verif|success|claimed/i.test(s.status) && !/unverif|pending|fail/i.test(s.status));
+}
+
 export function band(score: number) {
   return score <= 30 ? "weak" : score <= 70 ? "fair" : score <= 90 ? "good" : "excellent";
 }
@@ -31,7 +37,7 @@ export async function computeHealth(tx: Tx, workspaceId: string, connectionId: s
   const domains = await tx<{ d: string }[]>`SELECT DISTINCT link_domain AS d FROM pin_meta WHERE connection_id = ${connectionId} AND link_domain IS NOT NULL`;
   if (domains.length) {
     const claimed = new Set(
-      (conn?.claimed_sites ?? []).filter((s) => !s.status || /verif|success|claimed/i.test(s.status)).map((s) => domainKey(s.website ?? "") ?? ""),
+      (conn?.claimed_sites ?? []).filter(isClaimed).map((s) => domainKey(s.website ?? "") ?? ""),
     );
     const robotsBlocked = await tx<{ domain: string }[]>`
       SELECT DISTINCT domain FROM check_result WHERE connection_id = ${connectionId} AND (robots->>'blocked')::boolean
@@ -57,7 +63,7 @@ export async function computeHealth(tx: Tx, workspaceId: string, connectionId: s
 
   const vals = Object.values(sub).filter((v): v is number => v !== null);
   if (!vals.length) return null;
-  const score = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+  const score = Math.min(Math.round(vals.reduce((a, b) => a + b, 0) / vals.length), Math.min(...vals) + 10);
   await tx`
     INSERT INTO health_snapshot (workspace_id, connection_id, date, score, band, subgrades)
     VALUES (${workspaceId}, ${connectionId}, ${today}, ${score}, ${band(score)}, ${tx.json(sub as never)})

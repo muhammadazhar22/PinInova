@@ -9,6 +9,12 @@ concurrency:
 jobs:
   web:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_PASSWORD: dev, POSTGRES_DB: pinpulse }
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -16,9 +22,11 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile
-      - run: pnpm -r lint
       - run: pnpm -r typecheck
-      - run: pnpm -r test -- --coverage
+      # Unit + tenancy/RLS + crypto + purge tests run against real Postgres (the app connects as a non-owner role).
+      - run: pnpm --filter web test
+        env: { CHROME_PATH: /usr/bin/google-chrome }
+      - run: pnpm --filter @pinpulse/pinterest-mock test
       - run: pnpm --filter web build
   analytics:
     runs-on: ubuntu-latest
@@ -47,12 +55,12 @@ jobs:
           assert s >= 0.6, "detector benchmark below absolute floor 0.6"
           PY
   e2e:
-    needs: [web]
+    needs: [web, analytics]
     runs-on: ubuntu-latest
     services:
       postgres:
         image: postgres:16
-        env: { POSTGRES_PASSWORD: test, POSTGRES_DB: pinpulse }
+        env: { POSTGRES_PASSWORD: dev, POSTGRES_DB: pinpulse }
         ports: ["5432:5432"]
         options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
@@ -62,11 +70,30 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter web db:migrate
-        env: { DATABASE_URL: postgres://postgres:test@localhost:5432/pinpulse }
-      - run: pnpm --filter web exec playwright install --with-deps chromium
-      - run: pnpm --filter web e2e
-        env: { DATABASE_URL: postgres://postgres:test@localhost:5432/pinpulse, PINTEREST_MODE: fixtures }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -e "services/analytics"
+      # Pipeline e2e: OAuth → sync → integrity → analysis → alerts → reports → consent → purge, all 8 mock scenarios.
+      - run: scripts/test-e2e.sh
+        env: { CHROME_PATH: /usr/bin/google-chrome }
+      # Browser e2e: the whole stack with MOCK Pinterest, driven through Chrome.
+      - name: Browser e2e
+        run: |
+          cat > apps/web/.env.local <<ENV
+          APP_URL=http://localhost:3000
+          DATABASE_URL=postgres://pinpulse_app:pinpulse_app@localhost:5432/pinpulse
+          DATABASE_OWNER_URL=postgres://postgres:dev@localhost:5432/pinpulse
+          BETTER_AUTH_SECRET=$(openssl rand -base64 32)
+          TOKEN_KEK_V1=$(openssl rand -base64 32)
+          TOKEN_KEK_CURRENT=v1
+          PINTEREST_MODE=mock
+          INTEGRITY_ALLOW_PRIVATE_HOSTS=true
+          CHROME_PATH=/usr/bin/google-chrome
+          ENV
+          CHROME_PATH=/usr/bin/google-chrome scripts/test-browser.sh
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with: { name: playwright, path: apps/web/test-results }
   security:
     runs-on: ubuntu-latest
     steps:

@@ -44,7 +44,7 @@ export default async function AccountPage({ params }: { params: Promise<{ ws: st
             </ul>
           )}
           <details className="mt-3 text-xs"><summary className="muted cursor-pointer">How the score is calculated</summary>
-            <p className="mt-1">The mean of the available sub-grades. Distribution: 100 without a drop, 65 during an early warning, and 100 × (1 − drop size) capped at 60 during a confirmed drop. Link quality: share of sampled Pin links loading in under 4 s with at most one redirect. Domain trust: −25 per unclaimed linked domain, −40 per robots.txt blocking Pinterestbot. Content integrity: share of recent Pins not reusing another Pin's image. Cadence: −15 per week with more than 3× your usual new Pins.</p></details>
+            <p className="mt-1">The mean of the available sub-grades, capped at the weakest sub-grade + 10 so one severe problem is never averaged away. Distribution: 100 without a drop, 65 during an early warning, and 100 × (1 − drop size) capped at 60 during a confirmed drop. Link quality: share of sampled Pin links loading in under 4 s with at most one redirect. Domain trust: −25 per unclaimed linked domain, −40 per robots.txt blocking Pinterestbot. Content integrity: share of recent Pins not reusing another Pin's image. Cadence: −15 per week with more than 3× your usual new Pins.</p></details>
         </Card>
         <Card title="Daily impressions" className="md:col-span-2">
           {d.series.dates.length ? <TimelineChart dates={d.series.dates} impressions={d.series.impressions} clicks={d.series.clicks} markers={markers} provisional={d.series.provisional} /> : <Empty>No data yet. The first sync pulls 90 days.</Empty>}

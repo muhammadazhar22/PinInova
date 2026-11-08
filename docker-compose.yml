@@ -1,12 +1,25 @@
+# Local development stack. Pinterest is MOCKED (services/pinterest-mock); nothing here talks to real Pinterest.
 services:
   postgres:
     image: postgres:16
     environment: { POSTGRES_PASSWORD: dev, POSTGRES_DB: pinpulse }
     ports: ["5432:5432"]
     volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck: { test: ["CMD", "pg_isready", "-U", "postgres"], interval: 5s, retries: 10 }
   analytics:
     build: services/analytics
     command: uvicorn pinpulse_analytics.api:app --host 0.0.0.0 --port 8000 --reload
     volumes: ["./services/analytics:/app"]
     ports: ["8000:8000"]
+  pinterest-mock:
+    image: node:22-slim
+    working_dir: /app/services/pinterest-mock
+    command: sh -c "corepack enable && pnpm install --ignore-workspace --frozen-lockfile && pnpm start"
+    environment:
+      MOCK_HOST: 0.0.0.0
+      MOCK_SITE_BASE: http://127.0.0.1:4011
+      MOCK_API_BASE: http://127.0.0.1:4010
+      MOCK_RATE_ANALYTICS_PER_MIN: "600"
+    volumes: ["./services/pinterest-mock:/app/services/pinterest-mock"]
+    ports: ["4010:4010", "4011:4011"]
 volumes: { pgdata: {} }

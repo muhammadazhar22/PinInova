@@ -97,6 +97,8 @@ export function env(): Env {
     if (parsed.data.NODE_ENV === "production" && process.env.NEXT_PHASE !== "phase-production-build") {
       if (parsed.data.BETTER_AUTH_SECRET.startsWith("dev-only")) throw new Error("Set BETTER_AUTH_SECRET in production");
       if (parsed.data.TOKEN_KEK_V1.startsWith("ZGV2")) throw new Error("Set TOKEN_KEK_V1 in production");
+      // The migrations create pinpulse_app with this password; production must set its own (scripts/migrate.ts applies it).
+      if (/\/\/pinpulse_app:pinpulse_app@/.test(parsed.data.DATABASE_URL)) throw new Error("Set a strong pinpulse_app password in DATABASE_URL in production");
       if (!parsed.data.ANALYTICS_TOKEN || parsed.data.ANALYTICS_TOKEN.length < 32) throw new Error("Set ANALYTICS_TOKEN (32+ characters) in production");
       // Private hosts are only reachable for the local mock websites; a live deployment must never allow them (SSRF).
       if (parsed.data.INTEGRITY_ALLOW_PRIVATE_HOSTS && parsed.data.PINTEREST_MODE === "live") throw new Error("INTEGRITY_ALLOW_PRIVATE_HOSTS must be false when PINTEREST_MODE=live");

@@ -1,0 +1,105 @@
+# Staging deploy (SPEC-073, docs/DEPLOYMENT.md Step 3). Runs after `ci` succeeds on main, or by hand.
+# Does nothing until the repository variable STAGING_DEPLOY_ENABLED is "true" (set it once the server, Neon and the
+# secrets in docs/runbooks/staging-setup.md exist). Never changes PINTEREST_MODE: that lives in the server's .env.
+name: deploy-staging
+on:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git ref to build and deploy (default: main)"
+        required: false
+        default: main
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    if: >-
+      vars.STAGING_DEPLOY_ENABLED == 'true' &&
+      (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || inputs.ref }}
+      - id: meta
+        run: |
+          echo "tag=sha-$(git rev-parse --short=12 HEAD)" >> "$GITHUB_OUTPUT"
+          echo "owner=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push app image (web, worker, migrations, mock)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/app.Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ steps.meta.outputs.owner }}/pinpulse-app:${{ steps.meta.outputs.tag }}
+            ghcr.io/${{ steps.meta.outputs.owner }}/pinpulse-app:staging
+          cache-from: type=gha,scope=app
+          cache-to: type=gha,mode=max,scope=app
+      - name: Build and push analytics image
+        uses: docker/build-push-action@v6
+        with:
+          context: services/analytics
+          push: true
+          tags: |
+            ghcr.io/${{ steps.meta.outputs.owner }}/pinpulse-analytics:${{ steps.meta.outputs.tag }}
+            ghcr.io/${{ steps.meta.outputs.owner }}/pinpulse-analytics:staging
+          cache-from: type=gha,scope=analytics
+          cache-to: type=gha,mode=max,scope=analytics
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://${{ vars.STAGING_APP_HOST }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || inputs.ref }}
+      - name: SSH key and pinned host key
+        env:
+          SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.STAGING_SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+      - name: Copy compose, Caddy config and deploy script
+        env: { TARGET: "${{ vars.STAGING_SSH_USER }}@${{ vars.STAGING_SSH_HOST }}" }
+        run: |
+          scp -o StrictHostKeyChecking=yes -r infra/docker-compose.prod.yml infra/deploy.sh infra/caddy "$TARGET:/opt/pinpulse/"
+      - name: Migrate (owner role) and restart, with health gate and automatic rollback
+        env:
+          TARGET: "${{ vars.STAGING_SSH_USER }}@${{ vars.STAGING_SSH_HOST }}"
+          TAG: ${{ needs.build.outputs.tag }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # The job's short-lived token lets the server pull this release; it is logged out again afterwards.
+          printf '%s' "$GHCR_TOKEN" | ssh -o StrictHostKeyChecking=yes "$TARGET" "docker login ghcr.io -u '$GHCR_USER' --password-stdin >/dev/null"
+          ssh -o StrictHostKeyChecking=yes "$TARGET" "/opt/pinpulse/deploy.sh '$TAG'; rc=\$?; docker logout ghcr.io >/dev/null; exit \$rc"
+      - name: Public smoke check
+        run: |
+          for p in /api/health /api/health/worker /privacy; do
+            curl -fsS -o /dev/null -w "%{http_code} $p\n" --retry 5 --retry-delay 5 --retry-all-errors "https://${{ vars.STAGING_APP_HOST }}$p"
+          done

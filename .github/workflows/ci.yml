@@ -27,6 +27,25 @@ jobs:
         env: { CHROME_PATH: /usr/bin/google-chrome }
       - run: pnpm --filter @pinpulse/pinterest-mock test
       - run: pnpm --filter web build
+  web-neon-owner:
+    # Same unit/RLS suite, but migrations run as a NOSUPERUSER BYPASSRLS owner on a fresh cluster with no pinpulse_app
+    # role, the way Neon's project owner works (SPEC-073).
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_PASSWORD: dev, POSTGRES_DB: pinpulse }
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: PGPASSWORD=dev psql -h localhost -U postgres -c "CREATE ROLE neon_owner LOGIN PASSWORD 'dev' NOSUPERUSER CREATEROLE CREATEDB BYPASSRLS"
+      - run: pnpm --filter web test
+        env: { CHROME_PATH: /usr/bin/google-chrome, TEST_DB_OWNER: "neon_owner:dev" }
   analytics:
     runs-on: ubuntu-latest
     defaults: { run: { working-directory: services/analytics } }
@@ -80,7 +99,7 @@ jobs:
         run: |
           cat > apps/web/.env.local <<ENV
           APP_URL=http://localhost:3000
-          DATABASE_URL=postgres://pinpulse_app:pinpulse_app@localhost:5432/pinpulse
+          DATABASE_URL=postgres://pinpulse_app:$(openssl rand -hex 24)@localhost:5432/pinpulse
           DATABASE_OWNER_URL=postgres://postgres:dev@localhost:5432/pinpulse
           BETTER_AUTH_SECRET=$(openssl rand -base64 32)
           TOKEN_KEK_V1=$(openssl rand -base64 32)

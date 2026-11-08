@@ -77,7 +77,7 @@ export function env(): Env {
     if (!parsed.success) {
       throw new Error(`Invalid configuration: ${parsed.error.message}`);
     }
-    if (parsed.data.NODE_ENV === "production") {
+    if (parsed.data.NODE_ENV === "production" && process.env.NEXT_PHASE !== "phase-production-build") {
       if (parsed.data.BETTER_AUTH_SECRET.startsWith("dev-only")) throw new Error("Set BETTER_AUTH_SECRET in production");
       if (parsed.data.TOKEN_KEK_V1.startsWith("ZGV2")) throw new Error("Set TOKEN_KEK_V1 in production");
       if (parsed.data.INTEGRITY_ALLOW_PRIVATE_HOSTS) throw new Error("INTEGRITY_ALLOW_PRIVATE_HOSTS must be false in production");

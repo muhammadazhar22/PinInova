@@ -83,3 +83,16 @@ export async function grantClientViewer(actorId: string, workspaceId: string, cl
     await audit(tx, { orgId: acc.orgId, workspaceId, actor: actorId, action: "workspace.grant_client_viewer", target: clientUserId });
   }, { manage: true });
 }
+
+/** Create an organisation with the user as owner (same tables Better Auth's organization plugin uses). */
+export async function createOrganization(userId: string, name: string) {
+  const { randomUUID } = await import("node:crypto");
+  const id = randomUUID();
+  const slug = `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "org"}-${id.slice(0, 6)}`;
+  await db().begin(async (tx) => {
+    await tx`INSERT INTO organization (id, name, slug, "createdAt") VALUES (${id}, ${name}, ${slug}, now())`;
+    await tx`INSERT INTO member (id, "organizationId", "userId", role, "createdAt") VALUES (${randomUUID()}, ${id}, ${userId}, 'owner', now())`;
+    await audit(tx as unknown as Tx, { orgId: id, actor: userId, action: "org.create", detail: { name } });
+  });
+  return id;
+}

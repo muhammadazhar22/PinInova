@@ -1,8 +1,10 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ["pg-boss", "playwright-core", "pg", "postgres"],
   poweredByHeader: false,
+  turbopack: { root: path.join(import.meta.dirname, "..", "..") },
   async headers() {
     return [
       {

@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --color-brand-50: #f0fdfa;
+  --color-brand-100: #ccfbf1;
+  --color-brand-600: #0d9488;
+  --color-brand-700: #0f766e;
+  --color-brand-800: #115e59;
+}
+
+@utility card { @apply rounded-xl border border-stone-200 bg-white p-5; }
+@utility muted { @apply text-stone-500; }
+@utility input { @apply w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm focus:outline-2 focus:outline-brand-600; }
+@utility label { @apply mb-1 block text-sm font-medium; }
+@utility btn { @apply inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:opacity-50; }
+@utility btn-primary { @apply btn bg-brand-700 text-white hover:bg-brand-800; }
+@utility btn-secondary { @apply btn border border-stone-300 hover:bg-stone-100; }
+@utility btn-danger { @apply btn border border-red-300 text-red-700 hover:bg-red-50; }
+
+:root { color-scheme: light dark; }
+body { background: var(--color-stone-50); color: var(--color-stone-900); -webkit-font-smoothing: antialiased; font-feature-settings: "tnum" 1; }
+h1 { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.01em; }
+h2 { font-size: 1.125rem; font-weight: 600; }
+table.data { width: 100%; font-size: 0.875rem; }
+table.data th { border-bottom: 1px solid var(--color-stone-200); padding: 0.5rem 0.75rem 0.5rem 0; text-align: left; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-stone-500); }
+table.data td { border-bottom: 1px solid var(--color-stone-100); padding: 0.5rem 0.75rem 0.5rem 0; vertical-align: top; }
+
+@media (prefers-color-scheme: dark) {
+  body { background: var(--color-stone-950); color: var(--color-stone-100); }
+  .card { background: var(--color-stone-900); border-color: var(--color-stone-800); }
+  .muted { color: var(--color-stone-400); }
+  .input { background: var(--color-stone-900); border-color: var(--color-stone-700); }
+  table.data th { color: var(--color-stone-400); border-color: var(--color-stone-800); }
+  table.data td { border-color: var(--color-stone-800); }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }

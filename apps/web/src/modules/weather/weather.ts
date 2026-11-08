@@ -34,5 +34,5 @@ export async function weatherIndex(p: { days?: number; niche?: Niche | null } = 
   const windows = await db()<{ date: string; reports: number; active_reporters: number }[]>`
     SELECT to_char(date,'YYYY-MM-DD') AS date, reports, active_reporters FROM system_weather_windows(${from}::date, ${to}::date, ${p.niche ?? null})`;
   const res = await analytics.weather(windows);
-  return windows.map((w, i) => ({ ...w, ...(res.days[i] ?? { fraction: 0, log_bf: 0, tail_p: 1, level: "normal" as const }) }));
+  return windows.map((w, i) => ({ ...w, ...(res.days[i] ?? { fraction: 0, log_bf: 0, tail_p: 1, level: "normal" as const, insufficient: true }) }));
 }

@@ -30,15 +30,20 @@ services:
 
   web:
     <<: *app
-    environment: { TRUST_PROXY: "true" }   # Caddy appends the client IP to X-Forwarded-For
+    environment: { TRUST_PROXY: "true", APP_RELEASE: "${IMAGE_TAG:-latest}" }   # Caddy appends the client IP to X-Forwarded-For
     networks: [edge, internal]
     depends_on:
       analytics: { condition: service_healthy }
 
   worker:
     <<: *app
+    environment: { APP_RELEASE: "${IMAGE_TAG:-latest}" }
     command: ["node_modules/.bin/tsx", "src/worker/index.ts"]
-    healthcheck: { disable: true }
+    # The worker touches this file on every 30 s heartbeat (src/modules/jobs/heartbeat.ts); stale for 2 min = unhealthy.
+    healthcheck:
+      test: ["CMD", "node", "-e", "const s=require('fs').statSync('/tmp/pinpulse-worker-heartbeat');process.exit(Date.now()-s.mtimeMs<120000?0:1)"]
+      interval: 30s
+      start_period: 60s
     stop_grace_period: 60s
     networks: [edge, internal]   # edge = egress for Pinterest, Resend, Sentry and integrity fetches
     depends_on:

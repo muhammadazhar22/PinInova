@@ -55,9 +55,11 @@ for _ in $(seq 1 90); do curl_ -fo /dev/null https://localhost/api/health && bre
 health="$(curl_ https://localhost/api/health || true)"; echo "health: $health"
 echo "$health" | grep -q '"db":true' && echo "$health" | grep -q '"analytics":true' || { echo "FAIL health"; exit 1; }
 
+for _ in $(seq 1 45); do curl_ -fo /dev/null https://localhost/api/health/worker && break; sleep 2; done
 expect() { local want="$1" url="$2" got; got="$(curl_ -o /dev/null -w '%{http_code}' "$url")"; [ "$got" = "$want" ] || { echo "FAIL $url -> $got (want $want)"; exit 1; }; echo "ok   $url -> $got"; }
 expect 200 https://localhost/
 expect 404 https://localhost/__mock/state
+expect 200 https://localhost/api/health/worker
 expect 200 "https://mock.localhost/oauth/?client_id=mock-client-id&redirect_uri=https://localhost/api/pinterest/callback&response_type=code&scope=user_accounts:read&state=x"
 expect 404 https://mock.localhost/__mock/state
 expect 404 https://mock.localhost/v5/user_account

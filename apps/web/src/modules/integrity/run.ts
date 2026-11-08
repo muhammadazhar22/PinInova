@@ -71,7 +71,7 @@ export async function runIntegrityChecks(workspaceId: string, connectionId: stri
   }
 
   const [conn] = await withWorkspace(workspaceId, (tx) => tx<{ claimed_sites: { website?: string; status?: string }[] }[]>`SELECT claimed_sites FROM pinterest_connection WHERE id = ${connectionId}`);
-  const claimed = new Set((conn?.claimed_sites ?? []).filter((s) => !s.status || /verif|success|claimed/i.test(s.status)).map((s) => domainKey(s.website ?? "", e.PINTEREST_MODE)));
+  const claimed = new Set((conn?.claimed_sites ?? []).filter((s) => !s.status || (/verif|success|claimed/i.test(s.status) && !/unverif|pending|fail/i.test(s.status))).map((s) => domainKey(s.website ?? "", e.PINTEREST_MODE)));
 
   // Duplicate images among recent Pins (policy: PA-03 — hashes computed transiently by the analytics service).
   let dup: { clusters: string[][]; duplicate_rate: number } | null = null;

@@ -39,8 +39,8 @@ export interface DiagnoseResponse {
   p_value: number | null;
   rate: { verdict: "stable" | "changed" | "insufficient"; log_bf: number | null; ctr_before: number | null; ctr_after: number | null; post_impressions: number };
   breadth: {
-    age: Record<string, number> | null;
-    domains: { domain: string; ratio: number; share_before: number }[] | null;
+    age: Record<string, number | null> | null;
+    domains: { domain: string; ratio: number | null; share_before: number }[] | null;
     linked_ratio: number | null;
     unlinked_ratio: number | null;
   };

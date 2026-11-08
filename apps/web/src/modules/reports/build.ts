@@ -162,8 +162,8 @@ ${r.breadth.unlinked_ratio !== null ? `<tr><td>Pins without a link</td><td>${fmt
 function fmtPct(v: number | null) {
   return v === null ? "–" : `${(v * 100).toFixed(2)}%`;
 }
-function fmtRatio(v: number) {
-  return `${Math.round(v * 100)}%`;
+function fmtRatio(v: number | null) {
+  return v === null ? "no impressions before" : `${Math.round(v * 100)}%`;
 }
 
 export async function createShareLink(workspaceId: string, reportId: string, actor: string, days = 30) {

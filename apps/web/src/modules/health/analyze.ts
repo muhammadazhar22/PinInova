@@ -151,6 +151,7 @@ export async function analyzeAccount(workspaceId: string, connectionId: string, 
     const pins = await withWorkspace(workspaceId, (tx) => pinWindows(tx, connectionId, res.onset_date!));
     if (pins.length) res = await analytics.diagnose({ ...built.req, pins }, opts.fetchImpl);
   }
+  const domainDrops = res.status === "drop" ? [] : await scanDomains(built.req, opts.fetchImpl);
 
   return withWorkspace(workspaceId, async (tx) => {
     let incidentId: string | null = null;
@@ -173,9 +174,38 @@ export async function analyzeAccount(workspaceId: string, connectionId: string, 
         await upsertIssue(tx, workspaceId, connectionId, `cause:${top}`, label.source, "error", label.title, { incident_id: incidentId, evidence: res.evidence.slice(0, 5) });
       }
     }
+    if (domainDrops.length) {
+      const worst = domainDrops[0]!;
+      await upsertIssue(tx, workspaceId, connectionId, "domain:traffic_drop", "unknown", "warning",
+        `Pins linking to ${domainDrops.length === 1 ? worst.domain : `${domainDrops.length} domains`} lost ${Math.round(worst.effect * 100)}% of impressions since ${worst.onset}`,
+        { domains: domainDrops, basis: "tracked Pins only; the account as a whole did not cross the drop threshold" }, domainDrops.length);
+    } else if (res.status !== "drop") {
+      await closeIssuesNotIn(tx, connectionId, "domain:traffic_drop", []);
+    }
     const score = await computeHealth(tx, workspaceId, connectionId, res, todayUtc(now));
     return { result: res, incidentId, score };
   });
+}
+
+/**
+ * A drop confined to one linked domain can stay under the account-level threshold (cause A signature:
+ * Pinterest applies domain-level enforcement). Run the same detector on each sizeable domain series.
+ */
+async function scanDomains(req: DiagnoseRequest, fetchImpl?: typeof fetch) {
+  const out: { domain: string; onset: string; effect: number }[] = [];
+  const doms = (req.domains ?? [])
+    .map((d) => ({ d, mean: d.impressions.slice(0, 60).reduce((a, b) => a + (b ?? 0), 0) / Math.max(1, Math.min(60, d.impressions.length)) }))
+    .filter((x) => x.mean >= 30)
+    .sort((a, b) => b.mean - a.mean)
+    .slice(0, 5);
+  for (const { d } of doms) {
+    const r = await analytics.diagnose({
+      dates: req.dates, impressions: d.impressions, outbound_clicks: d.impressions.map(() => 0),
+      provisional_days: req.provisional_days, min_drop: req.min_drop,
+    }, fetchImpl).catch(() => null);
+    if (r?.status === "drop" && r.drop && r.onset_date) out.push({ domain: d.domain, onset: r.onset_date, effect: r.drop.effect });
+  }
+  return out.sort((a, b) => b.effect - a.effect);
 }
 
 export async function upsertIssue(tx: Tx, workspaceId: string, connectionId: string, kind: string, source: "pinterest" | "you" | "unknown", severity: "error" | "warning" | "info", title: string, detail: Record<string, unknown>, count = 1) {

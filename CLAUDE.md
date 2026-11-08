@@ -31,8 +31,9 @@ Read `specs/README.md` before any task. Every change traces to a spec ID (e.g. `
 2. Write failing tests for the criteria first.
 3. Implement the smallest change that passes; run the full gate locally.
 4. Self-review with `/review` checklist (`.claude/skills/review/SKILL.md`), fix, then open PR.
-5. Hard gate: SPEC-002 (sync), SPEC-003 (retention) and SPEC-060 (billing) may not be marked `in-progress` until `docs/policy/pinterest-storage-consent.md` holds Pinterest's written answer on Terms §4.1(a). If the answer is no, the fallback is SPEC-010 (user CSV imports) as the only history source.
-6. Stop and ask a human when: a spec contradicts a non-negotiable; a change touches billing, OAuth scopes, data deletion, or Pinterest policy text; a migration drops or renames a column; CI is red for a reason outside the task.
+5. Policy assumptions: unresolved Pinterest policy questions live in `docs/policy/ASSUMPTIONS.md` (PA-01..PA-10). Build against them; do not pause work to request Pinterest's permission; never mark one approved; cite the ID in code (`// policy: PA-01`) and read its config switch. Integration status lives in `docs/INTEGRATIONS.md`; never describe an integration as production-ready unless that file says live-verified.
+6. Never bypass OAuth, Pinterest access tiers, rate limits or app review. Where API access is unavailable, use the mock Pinterest server (`services/pinterest-mock`) and label it as mock in UI and logs.
+7. Stop and ask a human when: a spec contradicts a non-negotiable; a change touches billing, OAuth scopes, data deletion, or Pinterest policy text; a migration drops or renames a column; CI is red for a reason outside the task.
 
 ## Commands
 - `pnpm dev` (web + analytics via docker compose), `pnpm test`, `pnpm e2e`, `pnpm bench` (runs the analytics benchmark).

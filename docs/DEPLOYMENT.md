@@ -74,6 +74,9 @@ private network. Vercel is possible later after those two changes.
 | E-mail | Resend | `EMAIL_TRANSPORT=resend` |
 | Errors, uptime | Sentry, Better Stack | Uptime checks on `/api/health` |
 
+Owner checklist (accounts, DNS, server, every secret and where it goes): `docs/runbooks/staging-setup.md`; server
+`.env` template: `infra/staging.env.example`; deploy and rollback: `docs/runbooks/deploy-and-rollback.md`.
+
 Code to write before deploying (one PR each):
 
 - [ ] Dockerfile for web + worker (Chrome included) and `docker-compose.prod.yml` with Caddy.

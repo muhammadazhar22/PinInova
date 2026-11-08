@@ -157,3 +157,9 @@ classification without breadth data (A vs D is ambiguous without per-domain seri
   per quarter, 5-day window) to be re-estimated from reports.
 - The benchmark is synthetic. Real labelled series (concierge audits) must be scored separately before any accuracy
   claim reaches users.
+
+## Authentication (SPEC-075)
+
+Set `ANALYTICS_TOKEN` (32+ characters, e.g. `openssl rand -base64 32`) and every route except `/healthz` requires
+`Authorization: Bearer <ANALYTICS_TOKEN>`. Leave it unset only for local development and tests. The web app sends the
+same variable; production refuses to start without it.

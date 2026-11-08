@@ -68,9 +68,10 @@ export class AnalyticsError extends Error {
 }
 
 async function post<T>(path: string, body: unknown, fetchImpl: typeof fetch = fetch): Promise<T> {
+  const token = env().ANALYTICS_TOKEN;
   const res = await fetchImpl(`${env().ANALYTICS_URL}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(60_000),
   });

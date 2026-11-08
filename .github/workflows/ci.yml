@@ -93,6 +93,22 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure()
         with: { name: playwright, path: apps/web/test-results }
+  stack:
+    # Production images (infra/app.Dockerfile, services/analytics) run with infra/docker-compose.prod.yml behind
+    # Caddy, MOCK Pinterest and a throwaway Postgres; then the browser e2e runs against https://localhost.
+    needs: [web]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: infra/test-stack.sh --browser
+        env: { CHROME_PATH: /usr/bin/google-chrome }
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with: { name: stack-playwright, path: apps/web/test-results }
   security:
     runs-on: ubuntu-latest
     steps:

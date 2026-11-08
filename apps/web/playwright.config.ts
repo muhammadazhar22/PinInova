@@ -8,6 +8,8 @@ export default defineConfig({
   workers: 1,
   use: {
     baseURL: process.env.APP_URL ?? "http://localhost:3000",
+    // Only for the local compose smoke test (infra/test-stack.sh), where Caddy serves a locally signed certificate.
+    ignoreHTTPSErrors: process.env.E2E_IGNORE_HTTPS_ERRORS === "true",
     launchOptions: { executablePath: process.env.CHROME_PATH || undefined },
     trace: "retain-on-failure",
     screenshot: "only-on-failure",

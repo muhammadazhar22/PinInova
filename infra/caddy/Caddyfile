@@ -1,0 +1,19 @@
+# Caddy terminates HTTPS (automatic Let's Encrypt certificates) for the app host.
+# Extra sites (the MOCK Pinterest OAuth page while in mock mode) are copied into ./enabled by infra/deploy.sh.
+{
+	email {$ACME_EMAIL}
+}
+
+{$APP_HOST} {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+	# Internal endpoints are never public.
+	@internal path /__mock* /metrics*
+	respond @internal 404
+	reverse_proxy web:3000
+}
+
+import /etc/caddy/enabled/*.caddy

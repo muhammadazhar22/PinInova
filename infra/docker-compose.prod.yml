@@ -1,0 +1,88 @@
+# PinPulse staging/production stack on one VPS (docs/DEPLOYMENT.md Step 3).
+#   web + worker + analytics (+ MOCK Pinterest while PINTEREST_MODE=mock) behind Caddy; Postgres is Neon (external).
+# Run from /opt/pinpulse on the server via infra/deploy.sh, which sets IMAGE_TAG and picks the Caddy sites.
+# Secrets live in /opt/pinpulse/.env (mode 600, never in git); see docs/runbooks/staging-setup.md.
+name: pinpulse
+
+x-app: &app
+  image: ${APP_IMAGE:-ghcr.io/muhammadazhar22/pinpulse-app}:${IMAGE_TAG:-latest}
+  env_file: [.env]
+  restart: unless-stopped
+  init: true
+  logging: { driver: json-file, options: { max-size: "20m", max-file: "5" } }
+
+services:
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443", "443:443/udp"]
+    environment:
+      APP_HOST: ${APP_HOST:?set APP_HOST, e.g. staging.example.com}
+      MOCK_OAUTH_HOST: ${MOCK_OAUTH_HOST:-}
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL}
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./caddy/enabled:/etc/caddy/enabled:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [edge]
+    depends_on: [web]
+
+  web:
+    <<: *app
+    environment: { TRUST_PROXY: "true" }   # Caddy appends the client IP to X-Forwarded-For
+    networks: [edge, internal]
+    depends_on:
+      analytics: { condition: service_healthy }
+
+  worker:
+    <<: *app
+    command: ["node_modules/.bin/tsx", "src/worker/index.ts"]
+    healthcheck: { disable: true }
+    stop_grace_period: 60s
+    networks: [edge, internal]   # edge = egress for Pinterest, Resend, Sentry and integrity fetches
+    depends_on:
+      analytics: { condition: service_healthy }
+
+  # One-off: docker compose run --rm migrate   (uses DATABASE_OWNER_URL; the app itself only uses DATABASE_URL)
+  migrate:
+    <<: *app
+    command: ["node_modules/.bin/tsx", "scripts/migrate.ts"]
+    restart: "no"
+    healthcheck: { disable: true }
+    profiles: [tools]
+    networks: [edge]
+
+  analytics:
+    image: ${ANALYTICS_IMAGE:-ghcr.io/muhammadazhar22/pinpulse-analytics}:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file: [.env]
+    networks: [internal]   # never published; reachable only from web and worker
+    logging: { driver: json-file, options: { max-size: "20m", max-file: "5" } }
+
+  # MOCK Pinterest (synthetic data). Started only with the "mock" profile while PINTEREST_MODE=mock.
+  # Caddy exposes only its /oauth consent page on MOCK_OAUTH_HOST; the API and /__mock admin stay internal.
+  pinterest-mock:
+    <<: *app
+    working_dir: /repo/services/pinterest-mock
+    command: ["node_modules/.bin/tsx", "src/cli.ts"]
+    env_file: []
+    environment:
+      MOCK_HOST: 0.0.0.0
+      MOCK_API_BASE: http://pinterest-mock:4010
+      MOCK_SITE_BASE: http://pinterest-mock:4011
+      MOCK_REDIRECT_URIS: https://${APP_HOST}/api/pinterest/callback
+      MOCK_RATE_ANALYTICS_PER_MIN: "600"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4010/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+    profiles: [mock]
+    networks: [edge, internal]
+
+networks:
+  edge: {}
+  internal: { internal: true }
+
+volumes:
+  caddy_data: {}
+  caddy_config: {}

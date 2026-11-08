@@ -1,0 +1,15 @@
+**/node_modules
+**/.next
+**/.env*
+!.env.example
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+**/*.egg-info
+**/test-results
+**/playwright-report
+**/coverage
+.git
+docs

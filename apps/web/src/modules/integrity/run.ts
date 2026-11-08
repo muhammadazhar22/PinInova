@@ -26,7 +26,7 @@ export function titleMatch(pinTitle: string | null | undefined, pageTitle: strin
   return [...a].filter((w) => b.has(w)).length / a.size >= 0.5;
 }
 
-function robotsUrlFor(link: string, mode: "mock" | "live"): { url: string; path: string } {
+export function robotsUrlFor(link: string, mode: "mock" | "live"): { url: string; path: string } {
   const u = new URL(link);
   if (mode === "mock" && (u.hostname === "127.0.0.1" || u.hostname === "localhost")) {
     const [slug, ...rest] = u.pathname.split("/").filter(Boolean);

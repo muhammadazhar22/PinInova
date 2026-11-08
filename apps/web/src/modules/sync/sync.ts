@@ -8,6 +8,12 @@ import { clientFor, markNeedsReauth } from "@/modules/pinterest/connections";
 import { PinterestAuthError } from "@/modules/pinterest/errors";
 import type { Pin } from "@/modules/pinterest/types";
 
+/** Pinterest may send date-times without an offset; they are UTC. */
+export function utcStamp(v: string | null | undefined): string | null {
+  if (!v) return null;
+  return /([zZ]|[+-]\d{2}:?\d{2})$/.test(v) ? v : `${v}Z`;
+}
+
 /** The connection was disconnected, purged or needs re-authorization: the job is done, not failed. */
 export class InactiveConnectionError extends Error {
   constructor(readonly status: string) {
@@ -114,7 +120,7 @@ export async function syncAccount(workspaceId: string, connectionId: string, opt
         // policy: PA-02 — id, created_at, board id, link, domain, declared AI disclosure. Never title/description/image.
         for (let i = 0; i < pins.length; i += 500) {
           const chunk = pins.slice(i, i + 500).map((p) => ({
-            workspace_id: workspaceId, connection_id: connectionId, pin_id: p.id, pin_created_at: p.created_at ?? null, board_id: p.board_id ?? null,
+            workspace_id: workspaceId, connection_id: connectionId, pin_id: p.id, pin_created_at: utcStamp(p.created_at), board_id: p.board_id ?? null,
             link: p.link ?? null, link_domain: domainKey(p.link, e.PINTEREST_MODE), has_link: Boolean(p.link), ai_disclosure: p.ai_disclosures?.values ?? null,
           }));
           await tx`

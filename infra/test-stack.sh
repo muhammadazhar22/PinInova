@@ -45,11 +45,13 @@ trap cleanup EXIT
 
 "${DC[@]}" config -q
 "${DC[@]}" run --rm migrate
-"${DC[@]}" up -d --wait --wait-timeout 180
+# No --wait: newer Compose fails it when any service (the worker) has no healthcheck. web already waits for a healthy
+# analytics via depends_on; poll the public health endpoint instead.
+"${DC[@]}" up -d
 
 curl_() { curl -sk --resolve localhost:443:127.0.0.1 --resolve mock.localhost:443:127.0.0.1 "$@"; }
-for _ in $(seq 1 60); do curl_ -fo /dev/null https://localhost/api/health && break; sleep 2; done
-health="$(curl_ https://localhost/api/health)"; echo "health: $health"
+for _ in $(seq 1 90); do curl_ -fo /dev/null https://localhost/api/health && break; sleep 2; done
+health="$(curl_ https://localhost/api/health || true)"; echo "health: $health"
 echo "$health" | grep -q '"db":true' && echo "$health" | grep -q '"analytics":true' || { echo "FAIL health"; exit 1; }
 
 expect() { local want="$1" url="$2" got; got="$(curl_ -o /dev/null -w '%{http_code}' "$url")"; [ "$got" = "$want" ] || { echo "FAIL $url -> $got (want $want)"; exit 1; }; echo "ok   $url -> $got"; }

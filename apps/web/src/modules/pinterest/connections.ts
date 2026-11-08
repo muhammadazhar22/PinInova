@@ -2,7 +2,7 @@ import { env } from "@/env";
 import { audit } from "@/lib/audit";
 import { newDataKey, openSecret, sealSecret, unwrapDataKey } from "@/lib/crypto/vault";
 import { db, withWorkspace, type Tx, one } from "@/lib/db";
-import { hashToken, newToken } from "@/lib/tokens";
+import { hashToken, newToken, safeEqual } from "@/lib/tokens";
 import { entitlements } from "@/modules/billing/plans";
 import { enqueue, QUEUES } from "@/modules/jobs/boss";
 import { PinterestClient } from "./client";
@@ -11,19 +11,34 @@ import { PinterestAuthError } from "./errors";
 import { authorizeUrl, exchangeCode, refreshTokens } from "./oauth";
 import type { RateGate, Category } from "./rate";
 
+export type ConnectErrorReason = "state_invalid" | "denied" | "plan_limit" | "consent_used" | "exchange_failed" | "wrong_browser";
+
 export class ConnectError extends Error {
-  constructor(public reason: "state_invalid" | "denied" | "plan_limit" | "consent_used" | "exchange_failed", message: string) {
+  constructor(public reason: ConnectErrorReason, message: string) {
     super(message);
   }
 }
 
-/** Step 1: create a single-use, 10-minute OAuth state bound to a workspace (and optionally a client consent link). */
+/** Cookie that binds an OAuth round trip to the browser that started it (login-CSRF / account-injection defence). */
+export const OAUTH_NONCE_COOKIE = "pp_oauth_nonce";
+
+/** Only same-site relative paths; rejects //host and /\host. */
+export function safeRedirectPath(p: string | null | undefined, fallback = "/app") {
+  return p && /^\/(?![\/\\])/.test(p) ? p : fallback;
+}
+
+/**
+ * Step 1: create a single-use, 10-minute OAuth state bound to a workspace, the starting user (owner flow) or
+ * client consent link, AND a browser nonce. The caller must set the nonce as an httpOnly cookie.
+ */
 export async function startConnect(p: { workspaceId: string; userId: string | null; consentRequestId?: string | null; redirectTo: string; orgId?: string }) {
+  if (!p.userId && !p.consentRequestId) throw new Error("startConnect needs a user (owner flow) or a consent request (client flow)");
   const state = newToken();
+  const nonce = newToken();
   await withWorkspace(p.workspaceId, (tx) => tx`
-    INSERT INTO oauth_state (state_hash, workspace_id, user_id, consent_request_id, redirect_to, expires_at)
-    VALUES (${hashToken(state)}, ${p.workspaceId}, ${p.userId}, ${p.consentRequestId ?? null}, ${p.redirectTo}, now() + interval '10 minutes')`);
-  return authorizeUrl(state);
+    INSERT INTO oauth_state (state_hash, nonce_hash, workspace_id, user_id, consent_request_id, redirect_to, expires_at)
+    VALUES (${hashToken(state)}, ${hashToken(nonce)}, ${p.workspaceId}, ${p.userId}, ${p.consentRequestId ?? null}, ${safeRedirectPath(p.redirectTo)}, now() + interval '10 minutes')`);
+  return { url: authorizeUrl(state), nonce };
 }
 
 export interface ConnectResult {
@@ -35,7 +50,7 @@ export interface ConnectResult {
 }
 
 /** Step 2: Pinterest redirected back. Validate state, exchange the code, store sealed tokens and a consent record. */
-export async function completeConnect(p: { state: string; code?: string | null; error?: string | null; fetchImpl?: typeof fetch }): Promise<ConnectResult> {
+export async function completeConnect(p: { state: string; nonce: string | null | undefined; sessionUserId: string | null | undefined; code?: string | null; error?: string | null; fetchImpl?: typeof fetch }): Promise<ConnectResult> {
   const stateHash = hashToken(p.state);
   const [row] = await db()<{ workspace_id: string }[]>`SELECT * FROM system_workspace_of_oauth_state(${stateHash})`;
   if (!row) throw new ConnectError("state_invalid", "This connection link has expired. Please start again.");
@@ -44,11 +59,18 @@ export async function completeConnect(p: { state: string; code?: string | null; 
 
   // Consume the state first so it can never be replayed, whatever happens next.
   const st = await withWorkspace(workspaceId, async (tx) => {
-    const [s] = await tx<{ user_id: string | null; consent_request_id: string | null; redirect_to: string }[]>`
-      DELETE FROM oauth_state WHERE state_hash = ${stateHash} AND expires_at > now() RETURNING user_id, consent_request_id, redirect_to`;
+    const [s] = await tx<{ user_id: string | null; consent_request_id: string | null; redirect_to: string; nonce_hash: Buffer | null }[]>`
+      DELETE FROM oauth_state WHERE state_hash = ${stateHash} AND expires_at > now() RETURNING user_id, consent_request_id, redirect_to, nonce_hash`;
     return s;
   });
   if (!st) throw new ConnectError("state_invalid", "This connection link has expired. Please start again.");
+  // The round trip must finish in the browser that started it, and the owner flow must finish as the same user.
+  if (!p.nonce || !st.nonce_hash || !safeEqual(hashToken(p.nonce), st.nonce_hash)) {
+    throw new ConnectError("wrong_browser", "This connection was started in a different browser. Please start again from PinPulse.");
+  }
+  if (st.user_id && st.user_id !== p.sessionUserId) {
+    throw new ConnectError("wrong_browser", "Please sign in as the person who started this connection and try again.");
+  }
   if (p.error || !p.code) throw new ConnectError("denied", "Pinterest access was not granted.");
 
   const ent = await entitlements(orgId);
@@ -99,8 +121,8 @@ export async function completeConnect(p: { state: string; code?: string | null; 
       INSERT INTO consent_record (workspace_id, connection_id, pinterest_user_id, pinterest_username, scopes, consent_text_version, granted_via, granted_by_user_id, revoke_token_hash)
       VALUES (${workspaceId}, ${connectionId}, ${pinterestUserId}, ${account.username ?? pinterestUserId}, ${scopes}, ${consentVersion},
               ${viaClientLink ? "client_link" : "owner"}, ${st.user_id}, ${revokeToken ? hashToken(revokeToken) : null})`;
-    await audit(tx, { orgId, workspaceId, actor: st.user_id ?? `pinterest:${account.username}`, action: "connection.connected", target: connectionId, detail: { mode: env().PINTEREST_MODE, scopes, via: viaClientLink ? "client_link" : "owner" } });
-    return { workspaceId, connectionId, redirectTo: st.redirect_to, revokeToken, viaClientLink };
+    await audit(tx, { orgId, workspaceId, actor: st.user_id ?? `consent_link:${st.consent_request_id}`, action: "connection.connected", target: connectionId, detail: { mode: env().PINTEREST_MODE, scopes, via: viaClientLink ? "client_link" : "owner" } });
+    return { workspaceId, connectionId, redirectTo: safeRedirectPath(st.redirect_to), revokeToken, viaClientLink };
   }, orgId).then(async (r) => {
     await enqueue(QUEUES.syncAccount, { connectionId: r.connectionId, workspaceId: r.workspaceId, reason: "initial" }, { singletonKey: r.connectionId }).catch(() => null);
     return r;

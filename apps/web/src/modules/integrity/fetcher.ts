@@ -1,6 +1,6 @@
 import http from "node:http";
 import https from "node:https";
-import { safeLookup, isBlockedAddress } from "@/lib/ssrf";
+import { bareHost, isBlockedAddress, safeLookup } from "@/lib/ssrf";
 import net from "node:net";
 
 export const UA = {
@@ -38,7 +38,9 @@ function once(url: URL, o: FetchOptions): Promise<{ status: number; location: st
   return new Promise((resolve, reject) => {
     const started = Date.now();
     if (!o.allowPrivate) {
-      if (net.isIP(url.hostname) && isBlockedAddress(url.hostname)) return reject(new Error("blocked address"));
+      // URL keeps brackets on IPv6 literals and Node skips `lookup` for literals, so check the bare literal here.
+      const host = bareHost(url.hostname);
+      if (net.isIP(host) && isBlockedAddress(host)) return reject(new Error("blocked address"));
       if (!["", "80", "443"].includes(url.port)) return reject(new Error("blocked port"));
     }
     const mod = url.protocol === "https:" ? https : http;
@@ -65,6 +67,12 @@ function once(url: URL, o: FetchOptions): Promise<{ status: number; location: st
         res.on("error", reject);
       },
     );
+    // Last line of defence: whatever path produced the socket, refuse a connection that landed on a blocked address.
+    req.on("socket", (sock) => {
+      sock.once("connect", () => {
+        if (!o.allowPrivate && sock.remoteAddress && isBlockedAddress(sock.remoteAddress)) req.destroy(new Error("blocked address"));
+      });
+    });
     req.on("timeout", () => req.destroy(new Error(`timeout after ${o.timeoutMs ?? 8000} ms`)));
     req.on("error", reject);
     req.end();

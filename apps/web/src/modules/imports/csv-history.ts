@@ -1,3 +1,4 @@
+import { lockConnection } from "@/modules/pinterest/guard";
 import { audit } from "@/lib/audit";
 import { withWorkspace } from "@/lib/db";
 import { analytics, type DiagnoseResponse } from "@/modules/health/analytics-client";
@@ -14,6 +15,7 @@ export async function importAnalyticsCsv(workspaceId: string, connectionId: stri
   const rows = parsed.rows.filter((r) => r.date);
   if (!rows.length) throw new Error("No dated rows found in the CSV");
   await withWorkspace(workspaceId, async (tx) => {
+    await lockConnection(tx, connectionId);
     await tx`SELECT ensure_month_partitions(${rows[0]!.date}::date, ${rows.at(-1)!.date}::date)`;
     for (let i = 0; i < rows.length; i += 500) {
       const chunk = rows.slice(i, i + 500).map((r) => ({

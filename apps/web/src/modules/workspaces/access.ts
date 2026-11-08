@@ -41,7 +41,8 @@ export async function requireManage(userId: string, workspaceId: string): Promis
 /** Run a tenant-scoped transaction after an authorization check. */
 export async function asUser<T>(userId: string, workspaceId: string, fn: (tx: Tx, acc: WorkspaceAccess) => Promise<T>, opts: { manage?: boolean } = {}) {
   const acc = opts.manage ? await requireManage(userId, workspaceId) : await resolveAccess(userId, workspaceId);
-  return withWorkspace(workspaceId, (tx) => fn(tx, acc), acc.orgId);
+  // Client viewers get no org context: org-scoped RLS (workspace list, org audit) must not open up for them.
+  return withWorkspace(workspaceId, (tx) => fn(tx, acc), acc.role === "client_viewer" ? undefined : acc.orgId);
 }
 
 export async function listOrgsForUser(userId: string) {
@@ -95,4 +96,36 @@ export async function createOrganization(userId: string, name: string) {
     await audit(tx as unknown as Tx, { orgId: id, actor: userId, action: "org.create", detail: { name } });
   });
   return id;
+}
+
+/**
+ * Invite a client to view a workspace (read-only). Access is granted only when someone opens the e-mailed,
+ * single-use link while signed in — possession of the link proves control of the address, so pre-registering
+ * a client's e-mail address gains nothing.
+ */
+export async function inviteClientViewer(actorId: string, workspaceId: string, email: string) {
+  const { newToken, hashToken } = await import("@/lib/tokens");
+  const { queueEmail } = await import("@/modules/notify/email");
+  const { escapeHtml } = await import("@/modules/notify/email");
+  const token = newToken();
+  const url = `${process.env.APP_URL ?? "http://localhost:3000"}/invite/${token}`;
+  const id = await asUser(actorId, workspaceId, async (tx, acc) => {
+    const [w] = await tx<{ name: string }[]>`SELECT name FROM workspace WHERE id = ${workspaceId}`;
+    const [inv] = await tx<{ id: string }[]>`
+      INSERT INTO viewer_invite (workspace_id, email, token_hash, invited_by, expires_at)
+      VALUES (${workspaceId}, ${email}, ${hashToken(token)}, ${actorId}, now() + interval '14 days') RETURNING id`;
+    const emailId = await queueEmail(tx, {
+      workspaceId, to: email, subject: `You're invited to view "${w?.name ?? "a workspace"}" on PinPulse`,
+      html: `<p>You've been invited to view the Pinterest health workspace <b>${escapeHtml(w?.name ?? "")}</b> (read-only).</p><p><a href="${url}">Accept the invitation</a> — the link works once and expires in 14 days.</p>`,
+    });
+    await audit(tx, { orgId: acc.orgId, workspaceId, actor: actorId, action: "workspace.invite_client_viewer", target: inv!.id });
+    return emailId;
+  }, { manage: true });
+  return { emailId: id, url };
+}
+
+export async function acceptViewerInvite(userId: string, token: string): Promise<string | null> {
+  const { hashToken } = await import("@/lib/tokens");
+  const [r] = await db()<{ ws: string | null }[]>`SELECT system_accept_viewer_invite(${hashToken(token)}, ${userId}) AS ws`;
+  return r?.ws ?? null;
 }

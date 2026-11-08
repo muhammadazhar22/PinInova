@@ -28,3 +28,10 @@ in the first live smoke test.
 | `user_account/websites` | `website` includes scheme; status `verified`/`unverified` | domain extracted from either; only verified/claimed statuses count |
 | robots.txt for mock sites | `/<slug>/robots.txt` (all mock sites share one host) | mock-mode domain key = host + first path segment; live uses `/robots.txt` |
 | Native analytics CSV export columns | n/a (analytics service aliases) | aliases documented in `services/analytics/README.md`; not checked against a real export |
+
+## Operational limits
+
+- Pinterest rate gates are per process. Sync jobs are singleton per connection (pg-boss `singletonKey`), so a
+  connection's gate is owned by one worker at a time; any new job type that calls Pinterest for a connection must
+  run inside the sync job or move the gate to Postgres/Redis first.
+- `TRUST_PROXY=true` only behind a proxy that appends the client IP to `X-Forwarded-For`.

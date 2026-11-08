@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/modules/auth/client";
 
-export function AuthForm({ mode }: { mode: "login" | "signup" }) {
+export function AuthForm({ mode, next }: { mode: "login" | "signup"; next?: string }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -20,7 +20,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         : await authClient.signIn.email({ email, password });
     setBusy(false);
     if (res.error) return setError(res.error.message ?? "Something went wrong");
-    router.push("/app");
+    router.push(next && /^\/(?![\/\\])/.test(next) ? next : "/app");
     router.refresh();
   }
   return (

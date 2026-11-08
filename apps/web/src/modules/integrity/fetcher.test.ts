@@ -65,4 +65,16 @@ describe("robots", () => {
     for (const ip of ["127.0.0.1", "10.1.2.3", "192.168.0.1", "169.254.169.254", "::1", "fd00::1", "::ffff:10.0.0.1", "100.64.0.1"]) expect(isBlockedAddress(ip)).toBe(true);
     for (const ip of ["8.8.8.8", "151.101.1.1", "2606:4700::1111"]) expect(isBlockedAddress(ip)).toBe(false);
   });
+  it("refuses every IPv6 encoding of internal addresses (review 2026-11-08 #2)", () => {
+    for (const ip of ["[::1]", "::ffff:7f00:1", "::ffff:a9fe:a9fe", "::127.0.0.1", "::", "64:ff9b::a9fe:a9fe", "2002:7f00:1::",
+      "fec0::1", "fe80::1%eth0", "2001::1", "not-an-ip", "0.0.0.0", "255.255.255.255", "198.18.0.1", "240.0.0.1"]) {
+      expect(isBlockedAddress(ip), ip).toBe(true);
+    }
+  });
+  it("refuses bracketed IPv6 literals in URLs before connecting", async () => {
+    for (const u of ["http://[::1]/", "http://[::ffff:127.0.0.1]/", "http://[::ffff:169.254.169.254]/latest/", "http://[64:ff9b::a9fe:a9fe]/"]) {
+      const r = await checkFetch(u, { uaMode: "honest", allowPrivate: false });
+      expect(r.error, u).toBe("blocked address");
+    }
+  });
 });

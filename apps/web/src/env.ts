@@ -83,6 +83,9 @@ export function env(): Env {
       // Private hosts are only reachable for the local mock websites; a live deployment must never allow them (SSRF).
       if (parsed.data.INTEGRITY_ALLOW_PRIVATE_HOSTS && parsed.data.PINTEREST_MODE === "live") throw new Error("INTEGRITY_ALLOW_PRIVATE_HOSTS must be false when PINTEREST_MODE=live");
       if (parsed.data.PINTEREST_MODE === "live" && parsed.data.PINTEREST_CLIENT_ID.startsWith("mock")) throw new Error("Set real PINTEREST_CLIENT_ID for live mode");
+      // Simulated billing lets any owner pick a plan: acceptable only for a mock demo, never with real accounts.
+      if (parsed.data.PINTEREST_MODE === "live" && parsed.data.BILLING_MODE === "simulated") throw new Error("BILLING_MODE=simulated is refused when PINTEREST_MODE=live");
+      if (parsed.data.BILLING_MODE !== "simulated" && parsed.data.PADDLE_WEBHOOK_SECRET.startsWith("dev-")) throw new Error("Set PADDLE_WEBHOOK_SECRET");
     }
     cached = parsed.data;
   }

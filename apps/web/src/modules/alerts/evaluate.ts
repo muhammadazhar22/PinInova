@@ -57,7 +57,7 @@ export async function evaluateAlerts(workspaceId: string, orgId: string, now = n
         if (!a) continue;
         created.push(a.id);
         if (ch === "email") {
-          for (const to of settings!.emails) await queueEmail(tx, { workspaceId, to, subject: msg.title, html: msg.html });
+          for (const to of settings!.emails) await queueEmail(tx, { workspaceId, connectionId: inc.connection_id, to, subject: msg.title, html: msg.html });
         }
         if (ch === "in_app") await tx`UPDATE alert SET delivered_at = now() WHERE id = ${a.id}`;
       }

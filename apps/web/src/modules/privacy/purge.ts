@@ -5,7 +5,7 @@ import { db, withWorkspace, one } from "@/lib/db";
 
 const TABLES = [
   "account_metrics_daily", "pin_metrics_daily", "pin_meta", "alert", "incident", "issue", "check_result",
-  "health_snapshot", "report", "traffic_leak_result", "pin_token", "order_attribution",
+  "health_snapshot", "report", "traffic_leak_result", "pin_token", "order_attribution", "observed_signal", "email_outbox",
 ] as const;
 
 /**

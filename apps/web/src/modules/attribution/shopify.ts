@@ -1,3 +1,4 @@
+import { lockConnection } from "@/modules/pinterest/guard";
 import { createHash, randomBytes } from "node:crypto";
 import { audit } from "@/lib/audit";
 import { num, one, withWorkspace } from "@/lib/db";
@@ -25,6 +26,7 @@ export function taggedUrl(link: string, token: string): string {
 
 export async function createTokens(workspaceId: string, connectionId: string, actor: string, items: { label: string; link: string; pinId?: string | null }[]) {
   return withWorkspace(workspaceId, async (tx) => {
+    await lockConnection(tx, connectionId);
     const out: { label: string; token: string; url: string }[] = [];
     for (const it of items.slice(0, 200)) {
       const token = newPinToken();
@@ -41,6 +43,7 @@ interface OrderRow { order_id: string; created_at: string; total_price: number; 
 export async function importOrdersCsv(workspaceId: string, connectionId: string, actor: string, csv: string, source: "csv" | "mock" = "csv") {
   const parsed = await analytics.parseCsv<OrderRow>(csv, "shopify_orders");
   return withWorkspace(workspaceId, async (tx) => {
+    await lockConnection(tx, connectionId);
     const { salt } = await one(tx<{ salt: Buffer }[]>`SELECT salt FROM workspace WHERE id = ${workspaceId}`);
     const tokens = new Set((await tx<{ token: string }[]>`SELECT token FROM pin_token WHERE connection_id = ${connectionId}`).map((t) => t.token));
     let matched = 0;

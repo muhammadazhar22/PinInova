@@ -17,6 +17,11 @@ export function authOptions(connectionString: string, baseURL: string, secret: s
     session: { expiresIn: 60 * 60 * 24 * 14, updateAge: 60 * 60 * 24 },
     rateLimit: { enabled: true, window: 60, max: 100, storage: "memory" },
     advanced: { useSecureCookies: baseURL.startsWith("https://") },
-    plugins: [organization({ allowUserToCreateOrganization: true, creatorRole: "owner" })],
+    plugins: [organization({
+      allowUserToCreateOrganization: true,
+      creatorRole: "owner",
+      // Deleting an org must go through PinPulse's erasure path (disconnect + purge + audit), never a raw cascade.
+      disableOrganizationDeletion: true,
+    })],
   };
 }

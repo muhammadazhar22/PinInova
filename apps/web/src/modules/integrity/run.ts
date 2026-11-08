@@ -1,4 +1,5 @@
 import { isClaimed } from "@/modules/health/score";
+import { lockConnection } from "@/modules/pinterest/guard";
 import { randomUUID } from "node:crypto";
 import { env } from "@/env";
 import { withWorkspace } from "@/lib/db";
@@ -90,6 +91,7 @@ export async function runIntegrityChecks(workspaceId: string, connectionId: stri
   }
 
   await withWorkspace(workspaceId, async (tx) => {
+    await lockConnection(tx, connectionId);
     for (const x of results) {
       await tx`
         INSERT INTO check_result (workspace_id, connection_id, run_id, url, domain, final_url, hops, http_status, total_ms, robots, title_match, claimed, error, ua_mode)

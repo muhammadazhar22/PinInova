@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
 import { env } from "@/env";
 import { db, withWorkspace, one } from "@/lib/db";
+import { InactiveConnectionError, lockConnection } from "@/modules/pinterest/guard";
+export { InactiveConnectionError };
 import { addDays, dateRange, domainKey, todayUtc } from "@/lib/dates";
 import { entitlements } from "@/modules/billing/plans";
 import { flattenAnalytics, type PinterestClient } from "@/modules/pinterest/client";
@@ -12,13 +14,6 @@ import type { Pin } from "@/modules/pinterest/types";
 export function utcStamp(v: string | null | undefined): string | null {
   if (!v) return null;
   return /([zZ]|[+-]\d{2}:?\d{2})$/.test(v) ? v : `${v}Z`;
-}
-
-/** The connection was disconnected, purged or needs re-authorization: the job is done, not failed. */
-export class InactiveConnectionError extends Error {
-  constructor(readonly status: string) {
-    super(`connection not active (${status})`);
-  }
 }
 
 export interface SyncResult {
@@ -96,6 +91,7 @@ export async function syncAccount(workspaceId: string, connectionId: string, opt
     }
 
     await withWorkspace(workspaceId, async (tx) => {
+      await lockConnection(tx, connectionId, ["active"]);
       await tx`SELECT ensure_month_partitions(${start}::date, ${end}::date)`;
       for (const r of accountRows) {
         await tx`

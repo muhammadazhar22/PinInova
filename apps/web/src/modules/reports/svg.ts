@@ -2,7 +2,7 @@
 export function lineChartSvg(p: { dates: string[]; series: { name: string; values: number[]; color: string }[]; markers?: { date: string; label: string }[]; width?: number; height?: number; title?: string }) {
   const W = p.width ?? 720;
   const H = p.height ?? 220;
-  const L = 56, R = 16, T = p.title ? 28 : 12, B = 28;
+  const L = 56, R = 16, T = 28, B = 28;
   const n = p.dates.length;
   const max = Math.max(1, ...p.series.flatMap((s) => s.values));
   const x = (i: number) => L + (n <= 1 ? 0 : (i / (n - 1)) * (W - L - R));
@@ -23,6 +23,6 @@ export function lineChartSvg(p: { dates: string[]; series: { name: string; value
       return `<line x1="${x(i)}" x2="${x(i)}" y1="${T}" y2="${H - B}" stroke="#b45309" stroke-dasharray="4 3"/><text x="${x(i) + 4}" y="${T + 10}" font-size="10" fill="#b45309">${esc(m.label)}</text>`;
     })
     .join("");
-  const legend = p.series.map((s, k) => `<rect x="${L + k * 150}" y="4" width="10" height="10" fill="${s.color}"/><text x="${L + 14 + k * 150}" y="13" font-size="11" fill="#374151">${esc(s.name)}</text>`).join("");
+  const legend = p.series.map((s, k) => `<rect x="${L + k * 150}" y="6" width="10" height="10" fill="${s.color}"/><text x="${L + 14 + k * 150}" y="15" font-size="11" fill="#374151">${esc(s.name)}</text>`).join("");
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(p.title ?? p.series.map((s) => s.name).join(", "))}">${p.title ? "" : ""}${legend}${grid}${xl}${lines}${marks}</svg>`;
 }

@@ -14,11 +14,12 @@ import { simulateCheckout } from "@/modules/billing/paddle";
 import { importAnalyticsCsv } from "@/modules/imports/csv-history";
 import { enqueue, QUEUES } from "@/modules/jobs/boss";
 import { createConsentRequest, disconnect } from "@/modules/pinterest/connections";
+import { lockConnection } from "@/modules/pinterest/guard";
 import { setSlackWebhook } from "@/modules/notify/slack";
 import { preflightCsv } from "@/modules/preflight/preflight";
 import { eraseUser } from "@/modules/privacy/erasure";
 import { buildEvidencePack, buildMonthlyReport, createShareLink, revokeShareLink } from "@/modules/reports/build";
-import { asUser, createOrganization, createWorkspace, grantClientViewer } from "@/modules/workspaces/access";
+import { acceptViewerInvite, asUser, createOrganization, createWorkspace, inviteClientViewer } from "@/modules/workspaces/access";
 import { todayUtc } from "@/lib/dates";
 
 const uuid = z.string().uuid();
@@ -110,7 +111,10 @@ export async function recordObserved(f: FormData) {
   const conn = uuid.parse(f.get("conn"));
   const kind = z.enum(["visit_site_demoted", "domain_block_error", "ai_label", "search_invisible"]).parse(f.get("kind"));
   const note = String(f.get("note") || "").slice(0, 500) || null;
-  await asUser(user.id, ws, (tx) => tx`INSERT INTO observed_signal (workspace_id, connection_id, kind, note, created_by) VALUES (${ws}, ${conn}, ${kind}, ${note}, ${user.id})`, { manage: true });
+  await asUser(user.id, ws, async (tx) => {
+    await lockConnection(tx, conn);
+    await tx`INSERT INTO observed_signal (workspace_id, connection_id, kind, note, created_by) VALUES (${ws}, ${conn}, ${kind}, ${note}, ${user.id})`;
+  }, { manage: true });
   revalidatePath(`/app/w/${ws}/a/${conn}`);
 }
 
@@ -207,7 +211,7 @@ export async function alertFeedback(f: FormData) {
   const user = await requireUser();
   const ws = uuid.parse(f.get("ws"));
   const id = uuid.parse(f.get("alert"));
-  await asUser(user.id, ws, (tx) => recordAlertFeedback(tx, id, f.get("useful") === "1"));
+  await asUser(user.id, ws, (tx) => recordAlertFeedback(tx, id, f.get("useful") === "1"), { manage: true });
   revalidatePath(`/app/w/${ws}/alerts`);
 }
 
@@ -294,14 +298,21 @@ export async function grantViewerAction(_: ActionState, f: FormData): Promise<Ac
     const user = await requireUser();
     const ws = uuid.parse(f.get("ws"));
     const email = z.string().email().parse(String(f.get("email") || "").trim().toLowerCase());
-    const [u] = await db()<{ id: string }[]>`SELECT id FROM "user" WHERE lower(email) = ${email}`;
-    if (!u) return { error: "No PinPulse account with that email. Ask your client to sign up first, then add them." };
-    await grantClientViewer(user.id, ws, u.id);
+    const r = await inviteClientViewer(user.id, ws, email);
+    await enqueue(QUEUES.sendEmail, { workspaceId: ws, emailId: r.emailId });
     revalidatePath(`/app/w/${ws}/settings`);
-    return { ok: true, message: `${email} can now view this workspace (read-only).` };
+    return { ok: true, message: `Invitation sent to ${email}. They get read-only access when they open the link while signed in.` };
   } catch (e) {
     return fail(e);
   }
+}
+
+export async function acceptInviteAction(f: FormData) {
+  const user = await requireUser();
+  const token = z.string().min(20).max(100).parse(f.get("token"));
+  const ws = await acceptViewerInvite(user.id, token);
+  if (!ws) redirect(`/invite/${encodeURIComponent(token)}?e=invalid`);
+  redirect(`/app/w/${ws}`);
 }
 
 export async function simulateCheckoutAction(f: FormData) {

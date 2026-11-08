@@ -25,14 +25,14 @@ let orgId = "";
 let userId = "";
 
 async function connectAs(ws: string, mockUser: string, consentRequestId?: string) {
-  const url = await startConnect({ workspaceId: ws, userId: consentRequestId ? null : userId, consentRequestId, redirectTo: "/done" });
+  const { url, nonce } = await startConnect({ workspaceId: ws, userId: consentRequestId ? null : userId, consentRequestId, redirectTo: "/done" });
   const u = new URL(url);
   expect(u.origin).toBe(MOCK);
   u.searchParams.set("mock_user", mockUser);
   const res = await fetch(u, { redirect: "manual" });
   expect(res.status).toBeGreaterThanOrEqual(300);
   const back = new URL(res.headers.get("location")!);
-  return completeConnect({ state: back.searchParams.get("state")!, code: back.searchParams.get("code") });
+  return completeConnect({ state: back.searchParams.get("state")!, nonce, sessionUserId: consentRequestId ? null : userId, code: back.searchParams.get("code") });
 }
 
 async function fullRun(mockUser: string) {

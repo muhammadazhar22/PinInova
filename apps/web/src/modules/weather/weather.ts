@@ -22,10 +22,7 @@ export async function submitReport(p: { reporterId: string; niche: Niche; status
   const onset = p.status === "drop" ? p.onsetDate ?? today : today;
   if (onset > today || onset < addDays(today, -60)) throw new Error("onset date must be within the last 60 days");
   const symptoms = p.symptoms.filter((s) => (SYMPTOMS as readonly string[]).includes(s));
-  await db()`
-    INSERT INTO weather_report (reporter_hash, niche, onset_date, symptoms, status, report_date)
-    VALUES (${reporterHash(p.reporterId)}, ${p.niche}, ${onset}, ${symptoms}, ${p.status}, ${today})
-    ON CONFLICT (reporter_hash, report_date) DO UPDATE SET niche = EXCLUDED.niche, onset_date = EXCLUDED.onset_date, symptoms = EXCLUDED.symptoms, status = EXCLUDED.status`;
+  await db()`SELECT system_upsert_weather_report(${reporterHash(p.reporterId)}, ${p.niche}, ${onset}::date, ${symptoms}::text[], ${p.status}, ${today}::date)`;
 }
 
 export async function weatherIndex(p: { days?: number; niche?: Niche | null } = {}) {

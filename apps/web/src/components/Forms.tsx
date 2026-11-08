@@ -176,8 +176,8 @@ export function GrantViewerForm({ ws }: { ws: string }) {
   return (
     <form action={act} className="flex flex-wrap items-end gap-2">
       <input type="hidden" name="ws" value={ws} />
-      <div className="grow"><label className="label" htmlFor="vemail">Client's PinPulse email</label><input className="input" id="vemail" name="email" type="email" required /></div>
-      <button className="btn-secondary" disabled={pending}>Give read-only access</button>
+      <div className="grow"><label className="label" htmlFor="vemail">Client's email</label><input className="input" id="vemail" name="email" type="email" required /></div>
+      <button className="btn-secondary" disabled={pending}>Send read-only invitation</button>
       <div className="w-full"><Result s={s} /></div>
     </form>
   );

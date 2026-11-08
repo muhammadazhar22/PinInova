@@ -2,7 +2,7 @@ import { audit } from "@/lib/audit";
 import { db, withOrg } from "@/lib/db";
 import { disconnect } from "@/modules/pinterest/connections";
 import { purgeConnection } from "./purge";
-import { queueEmail } from "@/modules/notify/email";
+import { sendEmailNow } from "@/modules/notify/email";
 
 /**
  * GDPR erasure for a user. For organisations where the user is the only owner, every Pinterest
@@ -35,8 +35,11 @@ export async function eraseUser(userId: string) {
     await sql`DELETE FROM organization WHERE id = ${o.org}`;
     deletedOrgs++;
   }
-  await sql`UPDATE audit_event SET actor = 'erased-user' WHERE actor = ${userId}`.catch(() => null);
-  await queueEmail(null, { workspaceId: null, to: u.email, subject: "Your PinPulse account was deleted", html: "<p>Your PinPulse account and the Pinterest data it held have been deleted.</p>" });
+  // Cross-tenant by nature: a SECURITY DEFINER function anonymises the actor everywhere and drops queued mail to the address.
+  await sql`SELECT system_anonymise_actor(${userId})`;
   await sql`DELETE FROM "user" WHERE id = ${userId}`;
+  // Confirmation is sent directly and never stored, so the erased address does not persist in the outbox.
+  await sendEmailNow({ to: u.email, subject: "Your PinPulse account was deleted", html: "<p>Your PinPulse account and the Pinterest data it held have been deleted.</p>" })
+    .catch((err) => console.error(JSON.stringify({ msg: "erasure.confirmation_failed", error: (err as Error).message })));
   return { deletedOrgs };
 }

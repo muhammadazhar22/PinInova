@@ -1,18 +1,33 @@
 import dns from "node:dns";
 import net from "node:net";
+import ipaddr from "ipaddr.js";
 
-/** Addresses PinPulse must never fetch on a user's behalf (loopback, private, link-local, metadata, CGNAT, multicast). */
+/** Strip the brackets URL.hostname keeps around IPv6 literals ("[::1]" → "::1"). */
+export function bareHost(hostname: string): string {
+  return hostname.startsWith("[") && hostname.endsWith("]") ? hostname.slice(1, -1) : hostname;
+}
+
+/**
+ * Addresses PinPulse must never fetch on a user's behalf. Allow-list, not deny-list: only global unicast passes.
+ * IPv4-mapped (::ffff:a.b.c.d, incl. the hex form ::ffff:7f00:1) is judged as the IPv4 address it carries;
+ * IPv4-compatible (::a.b.c.d), NAT64 (64:ff9b::/96), 6to4 (2002::/16), Teredo, site-local (fec0::/10),
+ * unique-local, link-local, multicast and every other special range are refused. Unparseable → refused.
+ */
 export function isBlockedAddress(ip: string): boolean {
-  if (net.isIPv4(ip)) {
-    const [a, b] = ip.split(".").map(Number) as [number, number];
-    return (
-      a === 0 || a === 10 || a === 127 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) ||
-      (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127) || a >= 224 || (a === 198 && (b === 18 || b === 19))
-    );
+  const raw = bareHost(ip.trim()).replace(/%.*$/, ""); // drop zone id
+  if (!ipaddr.isValid(raw)) return true;
+  let addr: ipaddr.IPv4 | ipaddr.IPv6;
+  try {
+    addr = ipaddr.process(raw); // unwraps IPv4-mapped IPv6
+  } catch {
+    return true;
   }
-  const v = ip.toLowerCase();
-  if (v.startsWith("::ffff:")) return isBlockedAddress(v.slice(7));
-  return v === "::" || v === "::1" || v.startsWith("fc") || v.startsWith("fd") || v.startsWith("fe80") || v.startsWith("ff");
+  if (addr.kind() === "ipv6") {
+    const p = (addr as ipaddr.IPv6).parts;
+    if (p.slice(0, 6).every((x) => x === 0)) return true; // ::, ::1, ::a.b.c.d
+    if (p[0]! >= 0xfec0 && p[0]! <= 0xfeff) return true; // site-local + link-local
+  }
+  return addr.range() !== "unicast";
 }
 
 /** dns.lookup replacement that refuses blocked addresses at connect time (defeats DNS rebinding). */

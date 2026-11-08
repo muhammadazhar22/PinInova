@@ -1,5 +1,6 @@
 import { env } from "@/env";
 import { num, withWorkspace, type Tx } from "@/lib/db";
+import { lockConnection } from "@/modules/pinterest/guard";
 import { addDays, dateRange, daysBetween, todayUtc } from "@/lib/dates";
 import { analytics, CAUSE_LABELS, type DiagnoseRequest, type DiagnoseResponse } from "./analytics-client";
 import { computeHealth } from "./score";
@@ -154,6 +155,7 @@ export async function analyzeAccount(workspaceId: string, connectionId: string, 
   const domainDrops = res.status === "drop" ? [] : await scanDomains(built.req, opts.fetchImpl);
 
   return withWorkspace(workspaceId, async (tx) => {
+    await lockConnection(tx, connectionId);
     let incidentId: string | null = null;
     if (res.status !== "none") {
       const top = res.classes[0]?.cause ?? null;

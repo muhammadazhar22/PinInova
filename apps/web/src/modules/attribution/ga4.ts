@@ -1,3 +1,4 @@
+import { lockConnection } from "@/modules/pinterest/guard";
 import { env } from "@/env";
 import { audit } from "@/lib/audit";
 import { num, one, withWorkspace } from "@/lib/db";
@@ -95,6 +96,7 @@ export async function leakCheckMock(workspaceId: string, connectionId: string, a
 
 async function store(workspaceId: string, connectionId: string, actor: string, r: LeakResult, detail: Record<string, unknown>) {
   await withWorkspace(workspaceId, async (tx) => {
+    await lockConnection(tx, connectionId);
     await tx`INSERT INTO traffic_leak_result (workspace_id, connection_id, source, period_start, period_end, pinterest_outbound_clicks, ga4_pinterest_sessions, ga4_direct_sessions, leak_ratio, detail)
              VALUES (${workspaceId}, ${connectionId}, ${r.source}, ${r.periodStart}, ${r.periodEnd}, ${r.pinterestOutboundClicks}, ${r.ga4PinterestSessions}, ${r.ga4DirectSessionsOnPinPages},
                      ${r.leakRatio}, ${tx.json({ ...detail, sessions_per_click: r.sessionsPerClick, auto_utm_seen: r.autoUtmSeen } as never)})`;

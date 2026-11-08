@@ -14,3 +14,17 @@ Nothing here is production-ready. "Implemented" means the code path exists and i
 | Link/domain integrity fetcher | Implemented with SSRF guard | Local HTTP fixture server | PA-07 | `INTEGRITY_UA_MODE` |
 
 The in-app page `/app/integrations` renders this table's status from config so users always see which data is simulated.
+
+## Contract details the mock had to guess
+
+These shapes are not settled by Pinterest's OpenAPI spec. The mock picks one reading (marked `[MA]` in
+`services/pinterest-mock/README.md`) and the client is written to tolerate the alternatives. Each must be confirmed
+in the first live smoke test.
+
+| Detail | Mock behaviour | Client tolerance |
+|---|---|---|
+| Analytics split keys | `all` for NO_SPLIT; filter enum values otherwise (e.g. `CLAIMED`/`OTHER`) | keys treated as an open `Record`, lower-cased |
+| Timestamps | RFC 3339 with `Z` | parses with or without offset |
+| `user_account/websites` | `website` includes scheme; status `verified`/`unverified` | domain extracted from either; only verified/claimed statuses count |
+| robots.txt for mock sites | `/<slug>/robots.txt` (all mock sites share one host) | mock-mode domain key = host + first path segment; live uses `/robots.txt` |
+| Native analytics CSV export columns | n/a (analytics service aliases) | aliases documented in `services/analytics/README.md`; not checked against a real export |

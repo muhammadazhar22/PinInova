@@ -54,3 +54,10 @@ export function num(v: unknown): number {
   if (v === null || v === undefined) return 0;
   return typeof v === "bigint" ? Number(v) : Number(v);
 }
+
+/** First row of a query that must return exactly one row. */
+export async function one<T>(q: PromiseLike<readonly T[]>): Promise<T> {
+  const rows = await q;
+  if (!rows.length) throw new Error("expected one row");
+  return rows[0]!;
+}

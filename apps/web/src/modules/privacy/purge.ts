@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { env } from "@/env";
 import { audit } from "@/lib/audit";
-import { db, withWorkspace } from "@/lib/db";
+import { db, withWorkspace, one } from "@/lib/db";
 
 const TABLES = [
   "account_metrics_daily", "pin_metrics_daily", "pin_meta", "alert", "incident", "issue", "check_result",
@@ -45,7 +45,7 @@ export async function assertPurged(): Promise<{ connectionId: string; leftovers:
   const ids = await db()<{ connection_id: string }[]>`SELECT * FROM system_purged_connections()`;
   const bad: { connectionId: string; leftovers: Record<string, number> }[] = [];
   for (const { connection_id } of ids) {
-    const [{ r }] = (await db()<{ r: Record<string, number> }[]>`SELECT system_rows_for_connection(${connection_id}) AS r`) as [{ r: Record<string, number> }];
+    const { r } = await one(db()<{ r: Record<string, number> }[]>`SELECT system_rows_for_connection(${connection_id}) AS r`);
     const left = Object.fromEntries(Object.entries(r).filter(([, n]) => Number(n) > 0));
     if (Object.keys(left).length) bad.push({ connectionId: connection_id, leftovers: left });
   }
@@ -58,10 +58,10 @@ export async function runRetention(now = new Date()) {
   const day = 86400_000;
   const rawCutoff = new Date(now.getTime() - e.RETENTION_RAW_DAYS * day).toISOString().slice(0, 10);
   const derivedCutoff = new Date(now.getTime() - e.RETENTION_DERIVED_DAYS * day);
-  const [{ r: metrics }] = (await db()<{ r: unknown }[]>`SELECT system_delete_metrics_before(${rawCutoff}::date, ${derivedCutoff.toISOString().slice(0, 10)}::date) AS r`) as [{ r: unknown }];
-  const [{ r: derived }] = (await db()<{ r: unknown }[]>`SELECT system_delete_derived_before(${derivedCutoff}) AS r`) as [{ r: unknown }];
+  const { r: metrics } = await one(db()<{ r: unknown }[]>`SELECT system_delete_metrics_before(${rawCutoff}::date, ${derivedCutoff.toISOString().slice(0, 10)}::date) AS r`);
+  const { r: derived } = await one(db()<{ r: unknown }[]>`SELECT system_delete_derived_before(${derivedCutoff}) AS r`);
   // Keep partitions rolling: create upcoming months, drop months entirely older than derived retention.
   await db()`SELECT ensure_month_partitions(current_date, (current_date + interval '3 months')::date)`;
-  const [{ n: dropped }] = (await db()<{ n: number }[]>`SELECT system_drop_metric_partitions_before(${derivedCutoff.toISOString().slice(0, 10)}::date) AS n`) as [{ n: number }];
+  const { n: dropped } = await one(db()<{ n: number }[]>`SELECT system_drop_metric_partitions_before(${derivedCutoff.toISOString().slice(0, 10)}::date) AS n`);
   return { metrics, derived, droppedPartitions: dropped, rawCutoff };
 }

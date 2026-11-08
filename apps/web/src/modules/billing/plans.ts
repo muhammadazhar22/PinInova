@@ -1,4 +1,4 @@
-import { db, type Tx } from "@/lib/db";
+import { db, type Tx, one } from "@/lib/db";
 
 export type Plan = "trial" | "solo" | "pro" | "agency" | "canceled";
 
@@ -31,7 +31,7 @@ export async function entitlements(orgId: string, tx?: Tx): Promise<Entitlements
   await ensureSubscription(orgId);
   const [s] = await sql<{ plan: Plan; status: string; extra_accounts: number; trial_ends_at: Date | null }[]>`
     SELECT plan, status, extra_accounts, trial_ends_at FROM subscription WHERE org_id = ${orgId}`;
-  const [{ n }] = (await sql<{ n: number }[]>`SELECT system_org_active_accounts(${orgId}) AS n`) as [{ n: number }];
+  const { n } = await one(sql<{ n: number }[]>`SELECT system_org_active_accounts(${orgId}) AS n`);
   const plan = s!.plan;
   const trialExpired = plan === "trial" && s!.trial_ends_at !== null && s!.trial_ends_at < new Date();
   if (plan === "canceled" || trialExpired) {

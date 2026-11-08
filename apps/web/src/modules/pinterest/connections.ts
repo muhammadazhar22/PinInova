@@ -1,7 +1,7 @@
 import { env } from "@/env";
 import { audit } from "@/lib/audit";
 import { newDataKey, openSecret, sealSecret, unwrapDataKey } from "@/lib/crypto/vault";
-import { db, withWorkspace, type Tx } from "@/lib/db";
+import { db, withWorkspace, type Tx, one } from "@/lib/db";
 import { hashToken, newToken } from "@/lib/tokens";
 import { entitlements } from "@/modules/billing/plans";
 import { enqueue, QUEUES } from "@/modules/jobs/boss";
@@ -40,7 +40,7 @@ export async function completeConnect(p: { state: string; code?: string | null; 
   const [row] = await db()<{ workspace_id: string }[]>`SELECT * FROM system_workspace_of_oauth_state(${stateHash})`;
   if (!row) throw new ConnectError("state_invalid", "This connection link has expired. Please start again.");
   const workspaceId = row.workspace_id;
-  const [{ org: orgId }] = (await db()<{ org: string }[]>`SELECT system_workspace_org(${workspaceId}::uuid) AS org`) as [{ org: string }];
+  const { org: orgId } = await one(db()<{ org: string }[]>`SELECT system_workspace_org(${workspaceId}::uuid) AS org`);
 
   // Consume the state first so it can never be replayed, whatever happens next.
   const st = await withWorkspace(workspaceId, async (tx) => {

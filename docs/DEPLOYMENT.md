@@ -83,7 +83,7 @@ Code to write before deploying (one PR each):
 - [ ] Deploy workflow: on merge to `main`, build images, migrate with the owner role, restart over SSH.
 - [ ] Nightly `pg_dump` to Cloudflare R2 plus a restore script.
 - [ ] Shared-secret auth on the analytics service.
-- [ ] `scripts/smoke-live.ts` checking the five guessed Pinterest contract details (docs/INTEGRATIONS.md).
+- [ ] `apps/web/scripts/smoke-live.ts` checking the five guessed Pinterest contract details (docs/INTEGRATIONS.md; runbook `docs/runbooks/live-smoke-test.md`).
 
 Secrets: `BETTER_AUTH_SECRET` and `TOKEN_KEK_V1` (`openssl rand -base64 32`; keep a sealed offline copy of the KEK),
 `DATABASE_URL` (app role), `DATABASE_OWNER_URL` (migrations only), Pinterest app ID/secret, Paddle sandbox key and
@@ -98,7 +98,7 @@ and a backup restores into a fresh Neon branch.
 1. Switch staging to `PINTEREST_MODE=live` with the real app ID/secret. The app refuses live mode with mock
    credentials, simulated billing or private-host fetching.
 2. Connect the owner's own business account through the real consent screen; confirm read-only scopes.
-3. Run `scripts/smoke-live.ts`; fix any contract differences; re-run the browser test on staging.
+3. Run `apps/web/scripts/smoke-live.ts` (docs/runbooks/live-smoke-test.md); fix any contract differences; re-run the browser test on staging.
 4. Check assumption PA-09 (can a Trial app read real organic analytics for its own account?) and record the answer.
 5. Record a 3–5 minute demo: sign up → Connect Pinterest → real consent screen → sync and real data → report →
    disconnect.

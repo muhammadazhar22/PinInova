@@ -56,8 +56,9 @@ services:
   analytics:
     image: ${ANALYTICS_IMAGE:-ghcr.io/muhammadazhar22/pinpulse-analytics}:${IMAGE_TAG:-latest}
     restart: unless-stopped
-    env_file: [.env]
-    networks: [internal]   # never published; reachable only from web and worker
+    # Only the shared secret: the analytics service never sees app secrets, tokens or database URLs.
+    environment: { ANALYTICS_TOKEN: "${ANALYTICS_TOKEN:?set ANALYTICS_TOKEN (openssl rand -base64 32)}" }
+    networks: [internal]   # never published; reachable only from web and worker (with ANALYTICS_TOKEN)
     logging: { driver: json-file, options: { max-size: "20m", max-file: "5" } }
 
   # MOCK Pinterest (synthetic data). Started only with the "mock" profile while PINTEREST_MODE=mock.

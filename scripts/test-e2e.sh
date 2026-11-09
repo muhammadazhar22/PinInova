@@ -3,7 +3,15 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 LOG="${TMPDIR:-/tmp}/pinpulse-e2e"; mkdir -p "$LOG"
-cleanup() { kill $(jobs -p) 2>/dev/null || true; }
+# Kill each background job's whole process tree (pnpm/uvicorn children otherwise outlive the script and keep ports).
+tree() { local c; echo "$1"; for c in $(pgrep -P "$1" 2>/dev/null); do tree "$c"; done; }
+cleanup() {
+  local pids; pids="$(for j in $(jobs -p); do tree "$j"; done)"
+  [ -n "$pids" ] || return 0
+  kill $pids 2>/dev/null || true
+  for _ in 1 2 3 4 5 6 7 8 9 10; do kill -0 $pids 2>/dev/null || return 0; sleep 0.5; done
+  kill -9 $pids 2>/dev/null || true
+}
 trap cleanup EXIT
 
 ( cd "$ROOT/services/pinterest-mock" && MOCK_SITE_BASE=http://127.0.0.1:4011 MOCK_RATE_ANALYTICS_PER_MIN=${MOCK_RATE_ANALYTICS_PER_MIN:-6000} pnpm exec tsx src/cli.ts >"$LOG/mock.log" 2>&1 ) &

@@ -32,6 +32,7 @@ BETTER_AUTH_SECRET=$(openssl rand -base64 32)
 TOKEN_KEK_V1=$(openssl rand -base64 32)
 TOKEN_KEK_CURRENT=v1
 ANALYTICS_URL=http://analytics:8000
+ANALYTICS_TOKEN=$(openssl rand -base64 32)
 PINTEREST_MODE=mock
 PINTEREST_API_BASE=http://pinterest-mock:4010/v5
 PINTEREST_OAUTH_BASE=https://mock.localhost/oauth/
@@ -60,6 +61,9 @@ expect 404 https://localhost/__mock/state
 expect 200 "https://mock.localhost/oauth/?client_id=mock-client-id&redirect_uri=https://localhost/api/pinterest/callback&response_type=code&scope=user_accounts:read&state=x"
 expect 404 https://mock.localhost/__mock/state
 expect 404 https://mock.localhost/v5/user_account
+# The analytics service is unreachable from outside and rejects callers without the shared secret (SPEC-075).
+code="$("${DC[@]}" exec -T web node -e "fetch('http://analytics:8000/v1/weather',{method:'POST',headers:{'content-type':'application/json'},body:'{\"windows\":[]}'}).then(r=>console.log(r.status))")"
+[ "$code" = 401 ] || { echo "FAIL analytics without token -> $code"; exit 1; }; echo "ok   analytics without token -> 401"
 curl_ -sI https://localhost/ | grep -qi '^strict-transport-security' && echo "ok   HSTS"
 
 if $BROWSER; then

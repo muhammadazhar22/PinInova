@@ -5,6 +5,7 @@ from __future__ import annotations
 from fastapi import FastAPI, HTTPException
 
 from . import __version__
+from .auth import SharedSecretAuth
 from .csv_parse import CsvError, parse_csv
 from .detectors import diagnose
 from .duplicates import DuplicatesError, find_duplicates
@@ -27,6 +28,7 @@ from .weather import weather
 app = FastAPI(title="pinpulse-analytics", version=__version__,
               description="Stateless detection and diagnosis engine for PinPulse. One tenant per request; "
                           "nothing is stored; no Pinterest calls.")
+app.add_middleware(SharedSecretAuth)
 
 
 @app.get("/healthz", response_model=Health)

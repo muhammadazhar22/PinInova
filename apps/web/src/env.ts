@@ -34,6 +34,8 @@ const schema = z.object({
   TOKEN_KEK_V2: z.string().optional(),
 
   ANALYTICS_URL: z.string().url().default("http://127.0.0.1:8000"),
+  // Shared secret for services/analytics (SPEC-075). Required in production; unset only for local dev and tests.
+  ANALYTICS_TOKEN: z.string().optional(),
 
   // policy: PA-01
   RETENTION_RAW_DAYS: z.coerce.number().int().min(0).max(90).default(90),
@@ -80,6 +82,7 @@ export function env(): Env {
     if (parsed.data.NODE_ENV === "production" && process.env.NEXT_PHASE !== "phase-production-build") {
       if (parsed.data.BETTER_AUTH_SECRET.startsWith("dev-only")) throw new Error("Set BETTER_AUTH_SECRET in production");
       if (parsed.data.TOKEN_KEK_V1.startsWith("ZGV2")) throw new Error("Set TOKEN_KEK_V1 in production");
+      if (!parsed.data.ANALYTICS_TOKEN || parsed.data.ANALYTICS_TOKEN.length < 32) throw new Error("Set ANALYTICS_TOKEN (32+ characters) in production");
       // Private hosts are only reachable for the local mock websites; a live deployment must never allow them (SSRF).
       if (parsed.data.INTEGRITY_ALLOW_PRIVATE_HOSTS && parsed.data.PINTEREST_MODE === "live") throw new Error("INTEGRITY_ALLOW_PRIVATE_HOSTS must be false when PINTEREST_MODE=live");
       if (parsed.data.PINTEREST_MODE === "live" && parsed.data.PINTEREST_CLIENT_ID.startsWith("mock")) throw new Error("Set real PINTEREST_CLIENT_ID for live mode");

@@ -69,6 +69,13 @@ const schema = z.object({
 
   CHROME_PATH: z.string().default("/usr/bin/google-chrome"),
 
+  // Public legal pages (SPEC-071). Unset values render as visible "[to be set: …]" placeholders.
+  LEGAL_OPERATOR_NAME: z.string().optional(),
+  SUPPORT_EMAIL: z.string().email().optional(),
+  LEGAL_GOVERNING_LAW: z.string().optional(),
+  LEGAL_EFFECTIVE_DATE: z.string().optional(),
+  REFUND_WINDOW_DAYS: z.coerce.number().int().min(1).optional(),
+
   // Observability (SPEC-072). Unset DSN = nothing is sent to Sentry.
   SENTRY_DSN: z.string().url().optional(),
   SENTRY_ENVIRONMENT: z.string().default("development"),

@@ -7,10 +7,20 @@ import path from "node:path";
 import { getMigrations } from "better-auth/db/migration";
 import postgres from "postgres";
 import { authOptions } from "../src/modules/auth/options";
+import { appPasswordFrom, finishRoles, prepareRoles } from "../src/lib/db-roles";
 
 const ownerUrl = process.env.DATABASE_OWNER_URL ?? "postgres://postgres:dev@localhost:5432/pinpulse";
 
 async function main() {
+  // Roles first (SPEC-073): owner can bypass RLS, pinpulse_app exists with NOBYPASSRLS and the owner may SET to it.
+  const appPassword = appPasswordFrom(process.env.DATABASE_URL);
+  const roles = postgres(ownerUrl, { max: 1, onnotice: () => {} });
+  try {
+    await prepareRoles(roles, { appPassword, production: process.env.NODE_ENV === "production" });
+  } finally {
+    await roles.end();
+  }
+
   const opts = authOptions(ownerUrl, process.env.APP_URL ?? "http://localhost:3000", "migration-only-secret-0123456789abcdef");
   const { runMigrations, toBeCreated, toBeAdded } = await getMigrations(opts);
   if (toBeCreated.length || toBeAdded.length) {
@@ -37,6 +47,8 @@ async function main() {
     // Better Auth tables are created after grants in earlier runs; re-grant idempotently.
     await sql.unsafe(`GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO pinpulse_app;
                       GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO pinpulse_app;`);
+    await finishRoles(sql, { appPassword });
+    console.log("roles ok: pinpulse_app cannot bypass row-level security");
   } finally {
     await sql.end();
   }

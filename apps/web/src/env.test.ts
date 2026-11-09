@@ -16,6 +16,7 @@ function production(over: Record<string, string | undefined> = {}) {
     BETTER_AUTH_SECRET: "a".repeat(44),
     TOKEN_KEK_V1: Buffer.alloc(32, 7).toString("base64"),
     ANALYTICS_TOKEN: "b".repeat(43),
+    DATABASE_URL: "postgres://pinpulse_app:9f8e7d6c5b4a@db.example/pinpulse",
     PINTEREST_MODE: "mock",
     BILLING_MODE: "simulated",
   });
@@ -40,6 +41,11 @@ describe("production config guard", () => {
   it("refuses a short analytics shared secret", () => {
     production({ ANALYTICS_TOKEN: "short" });
     expect(() => env()).toThrow(/ANALYTICS_TOKEN/);
+  });
+
+  it("refuses the default pinpulse_app password (SPEC-073)", () => {
+    production({ DATABASE_URL: "postgres://pinpulse_app:pinpulse_app@db.example/pinpulse" });
+    expect(() => env()).toThrow(/pinpulse_app password/);
   });
 
   it("refuses the dev auth secret and dev KEK", () => {

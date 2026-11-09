@@ -1,0 +1,11 @@
+# MOCK Pinterest consent page. Enabled only while PINTEREST_MODE=mock (infra/deploy.sh copies it into ./enabled).
+# Only the OAuth pages are routed; /v5 and /__mock admin endpoints are reachable only on the internal network.
+{$MOCK_OAUTH_HOST} {
+	@oauth path /oauth /oauth/ /oauth/consent
+	handle @oauth {
+		reverse_proxy pinterest-mock:4010
+	}
+	handle {
+		respond "Not found (MOCK Pinterest)" 404
+	}
+}

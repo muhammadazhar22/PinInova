@@ -1,0 +1,13 @@
+# Override for infra/test-stack.sh and CI only: a throwaway Postgres 16 stands in for Neon, images are local builds.
+services:
+  postgres:
+    image: postgres:16
+    environment: { POSTGRES_PASSWORD: dev, POSTGRES_DB: pinpulse }
+    healthcheck: { test: ["CMD", "pg_isready", "-U", "postgres"], interval: 2s, retries: 30 }
+    networks: [edge]
+  web:
+    depends_on: { postgres: { condition: service_healthy }, analytics: { condition: service_healthy } }
+  worker:
+    depends_on: { postgres: { condition: service_healthy }, analytics: { condition: service_healthy } }
+  migrate:
+    depends_on: { postgres: { condition: service_healthy } }

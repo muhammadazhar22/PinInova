@@ -1,14 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { appUrl, secureCookies } from "@/lib/urls";
 import { lookupConsentRequest, startConnect, OAUTH_NONCE_COOKIE } from "@/modules/pinterest/connections";
 
 export async function POST(req: NextRequest, ctx: { params: Promise<{ token: string }> }) {
   const { token } = await ctx.params;
   const form = await req.formData();
-  if (form.get("agree") !== "yes") return NextResponse.redirect(new URL(`/consent/${token}?e=agree`, req.url), 303);
+  if (form.get("agree") !== "yes") return NextResponse.redirect(appUrl(`/consent/${token}?e=agree`), 303);
   const r = await lookupConsentRequest(token);
-  if (!r || r.used_at || r.expires_at < new Date()) return NextResponse.redirect(new URL(`/consent/${token}`, req.url), 303);
+  if (!r || r.used_at || r.expires_at < new Date()) return NextResponse.redirect(appUrl(`/consent/${token}`), 303);
   const { url, nonce } = await startConnect({ workspaceId: r.workspace_id, userId: null, consentRequestId: r.consent_request_id, redirectTo: "/consent/done" });
   const res = NextResponse.redirect(url, 303);
-  res.cookies.set(OAUTH_NONCE_COOKIE, nonce, { httpOnly: true, sameSite: "lax", secure: req.nextUrl.protocol === "https:", maxAge: 600, path: "/api/pinterest/callback" });
+  res.cookies.set(OAUTH_NONCE_COOKIE, nonce, { httpOnly: true, sameSite: "lax", secure: secureCookies(), maxAge: 600, path: "/api/pinterest/callback" });
   return res;
 }

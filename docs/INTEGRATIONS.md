@@ -11,6 +11,7 @@ Nothing here is production-ready. "Implemented" means the code path exists and i
 | Paddle billing | Webhook signature verification, entitlements, simulated checkout | Signed fixture payloads | Paddle seller verification (Pakistan), live product/price ids, sandbox end-to-end test | `BILLING_MODE=simulated\|paddle_sandbox` |
 | Email (Resend) | Outbox table + console transport; Resend HTTP transport implemented | Outbox assertions | Domain verification, API key | `EMAIL_TRANSPORT=outbox\|resend` |
 | Slack incoming webhooks | Implemented; webhook URL encrypted at rest | Local HTTP receiver | Real workspace test | per-workspace setting |
+| Sentry (errors, OTel-based tracing) | Implemented; scrubbed events | Unit tests + local fake ingest | DSN from a Sentry project; first staging event checked by hand | `SENTRY_DSN` (unset = off), `SENTRY_TRACES_SAMPLE_RATE` |
 | Link/domain integrity fetcher | Implemented with SSRF guard | Local HTTP fixture server | PA-07 | `INTEGRITY_UA_MODE` |
 
 The in-app page `/app/integrations` renders this table's status from config so users always see which data is simulated.

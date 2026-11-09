@@ -2,6 +2,7 @@
  * PinPulse worker: one process running all background jobs on pg-boss.
  * Job payloads carry identifiers only (no tokens, no metrics).
  */
+import * as Sentry from "@sentry/node";
 import { env } from "@/env";
 import { db, one } from "@/lib/db";
 import { redact } from "@/lib/crypto/vault";
@@ -9,6 +10,8 @@ import { deliverSlackAlert, evaluateAlerts, pendingDeliveries } from "@/modules/
 import { analyzeAccount } from "@/modules/health/analyze";
 import { runIntegrityChecks } from "@/modules/integrity/run";
 import { boss, enqueue, QUEUES, stopBoss } from "@/modules/jobs/boss";
+import { startHeartbeat } from "@/modules/jobs/heartbeat";
+import { sentryOptions } from "@/lib/observability/sentry-options";
 import { deliverEmail } from "@/modules/notify/email";
 import { disconnect, refreshNow } from "@/modules/pinterest/connections";
 import { PinterestAuthError } from "@/modules/pinterest/errors";
@@ -34,6 +37,7 @@ export async function registerHandlers() {
           log("job.done", { q, id: j.id, ms: Date.now() - started, r: typeof r === "object" ? r : undefined });
         } catch (e) {
           log("job.failed", { q, id: j.id, error: redact((e as Error).message) });
+          Sentry.captureException(e, { tags: { queue: q } }); // scrubbed in beforeSend; job payloads are never attached
           if (!(e instanceof PinterestAuthError)) throw e; // auth failures are terminal for the job; connection is flagged
         }
       }
@@ -113,7 +117,10 @@ export async function registerHandlers() {
 
   await w<Record<string, never>>(QUEUES.purgeAssert, async () => {
     const bad = await assertPurged();
-    if (bad.length) log("ALERT purge.leftovers", { bad }); // pages the founder via log-based alerting
+    if (bad.length) {
+      log("ALERT purge.leftovers", { bad }); // pages the founder via log-based alerting
+      Sentry.captureMessage(`purge assertion: ${bad.length} connection(s) still have rows after purge`, "fatal");
+    }
     return { leftovers: bad.length };
   });
 
@@ -132,15 +139,23 @@ export async function registerHandlers() {
 }
 
 if (process.argv[1]?.endsWith("worker/index.ts")) {
+  const sentry = sentryOptions("worker");
+  if (sentry) Sentry.init(sentry);
+  let stopBeat = () => {};
   registerHandlers()
-    .then(() => log("worker.started", { mode: env().PINTEREST_MODE }))
+    .then(() => {
+      stopBeat = startHeartbeat((e) => log("heartbeat.failed", { error: redact((e as Error).message) }));
+      log("worker.started", { mode: env().PINTEREST_MODE });
+    })
     .catch((e) => {
       console.error(e);
       process.exit(1);
     });
   const shutdown = async () => {
     log("worker.stopping");
+    stopBeat();
     await stopBoss();
+    await Sentry.flush(2000).catch(() => false);
     process.exit(0);
   };
   process.on("SIGTERM", shutdown);

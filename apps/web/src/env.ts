@@ -68,6 +68,14 @@ const schema = z.object({
   PADDLE_WEBHOOK_SECRET: z.string().default("dev-paddle-webhook-secret"),
 
   CHROME_PATH: z.string().default("/usr/bin/google-chrome"),
+
+  // Observability (SPEC-072). Unset DSN = nothing is sent to Sentry.
+  SENTRY_DSN: z.string().url().optional(),
+  SENTRY_ENVIRONMENT: z.string().default("development"),
+  SENTRY_TRACES_SAMPLE_RATE: z.coerce.number().min(0).max(1).default(0),
+  APP_RELEASE: z.string().optional(),
+  // The worker counts as down when its last heartbeat is older than this (GET /api/health/worker answers 503).
+  WORKER_STALE_SECONDS: z.coerce.number().int().min(30).default(180),
 });
 
 export type Env = z.infer<typeof schema>;

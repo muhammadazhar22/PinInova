@@ -16,6 +16,8 @@
     "e2e": "playwright test"
   },
   "dependencies": {
+    "@sentry/nextjs": "10.78.0",
+    "@sentry/node": "10.78.0",
     "better-auth": "1.7.18",
     "echarts": "6.1.0",
     "ipaddr.js": "2.2.0",

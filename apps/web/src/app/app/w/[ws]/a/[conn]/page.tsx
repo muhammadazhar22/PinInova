@@ -104,7 +104,7 @@ export default async function AccountPage({ params }: { params: Promise<{ ws: st
         </Card>
         {acc.canManage && (
           <Card title="Tell us what you see in Pinterest">
-            <p className="muted mb-2 text-sm">PinPulse never logs into or scrapes Pinterest. If you see one of these in the Pinterest app, record it here; it feeds the diagnosis and the evidence pack.</p>
+            <p className="muted mb-2 text-sm">PinInova never logs into or scrapes Pinterest. If you see one of these in the Pinterest app, record it here; it feeds the diagnosis and the evidence pack.</p>
             <form action={recordObserved} className="space-y-2">{hidden}
               <select className="input" name="kind" aria-label="What you observed">
                 <option value="visit_site_demoted">"Visit site" button missing or moved into the … menu</option>

@@ -1,6 +1,6 @@
 ---
 name: detector-loop
-description: Run the PinPulse detector improvement loop — pick the weakest benchmark metric, hypothesise one change to pinpulse_analytics, implement with tests, re-run the benchmark, keep only improvements, log the attempt. Use when asked to "improve the detector", "raise the benchmark", or "run a detector loop".
+description: Run the PinInova detector improvement loop — pick the weakest benchmark metric, hypothesise one change to pinpulse_analytics, implement with tests, re-run the benchmark, keep only improvements, log the attempt. Use when asked to "improve the detector", "raise the benchmark", or "run a detector loop".
 ---
 
 # Detector improvement loop

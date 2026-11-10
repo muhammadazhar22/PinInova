@@ -30,9 +30,9 @@ function page(title: string, slug: string, path: string): string {
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>${esc(title)}</title>
 <meta property="og:title" content="${esc(title)}">
-<meta name="description" content="MOCK page on ${esc(slug)} (synthetic, PinPulse pinterest-mock).">
+<meta name="description" content="MOCK page on ${esc(slug)} (synthetic, PinInova pinterest-mock).">
 </head><body>
-<p style="background:#ffe08a;padding:6px;font-weight:700">MOCK website "${esc(slug)}" served by PinPulse services/pinterest-mock. Not a real site.</p>
+<p style="background:#ffe08a;padding:6px;font-weight:700">MOCK website "${esc(slug)}" served by PinInova services/pinterest-mock. Not a real site.</p>
 <h1>${esc(title)}</h1>
 <p>Synthetic article for path <code>${esc(path)}</code>.</p>
 </body></html>`;
@@ -102,7 +102,7 @@ export async function createMockSites(options: MockSitesOptions = {}): Promise<R
     if (path === "/robots.txt") return reply(200, "# MOCK sites root\nUser-agent: *\nAllow: /\n", "text/plain; charset=utf-8");
     if (path === "/") {
       const list = SITES.map((s) => `<li><a href="/${s.slug}/">${s.slug}</a> — ${esc(s.behaviour)}: ${esc(s.description)}</li>`).join("");
-      return reply(200, `<!doctype html><html><head><meta charset="utf-8"><title>MOCK websites (PinPulse)</title></head><body><h1>MOCK websites — synthetic, not real sites</h1><ul>${list}</ul></body></html>`);
+      return reply(200, `<!doctype html><html><head><meta charset="utf-8"><title>MOCK websites (PinInova)</title></head><body><h1>MOCK websites — synthetic, not real sites</h1><ul>${list}</ul></body></html>`);
     }
     const site = slug ? SITE_BY_SLUG.get(slug) : undefined;
     if (!site) return reply(404, `<!doctype html><title>Not found</title><h1>404 — unknown MOCK site</h1>`);

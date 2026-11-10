@@ -1,7 +1,7 @@
 # @pinpulse/pinterest-mock
 
 > **THIS IS NOT PINTEREST. ALL DATA IS SYNTHETIC.**
-> A local stand-in for Pinterest API v5, built so PinPulse can run end to end before it has Standard API access.
+> A local stand-in for Pinterest API v5, built so PinInova can run end to end before it has Standard API access.
 > Every response has an `x-mock-pinterest` header (the sites server sends `x-mock-site`), the consent page title is
 > "MOCK Pinterest — not the real Pinterest", and every account, Pin, board, image and metric is generated from `MOCK_SEED`.
 > Passing tests here proves nothing about the live Pinterest API (see `docs/INTEGRATIONS.md`). UI and logs that use
@@ -193,7 +193,7 @@ Pins list item (trimmed):
 
 ```json
 {"id":"813902000000000320","created_at":"2026-11-08T00:40:05Z","link":"http://127.0.0.1:4011/cozy-kitchen/rustic-soup-recipe-p20319",
- "title":"Rustic Soup Recipe","description":"Rustic Soup Recipe. MOCK Pin with synthetic data for PinPulse development.",
+ "title":"Rustic Soup Recipe","description":"Rustic Soup Recipe. MOCK Pin with synthetic data for PinInova development.",
  "dominant_color":"#415F4C","alt_text":null,"creative_type":"REGULAR","board_id":"552102000000000001","board_section_id":null,
  "board_owner":{"username":"mock_platform_cliff"},"is_owner":true,"is_standard":true,"is_product":false,"has_been_promoted":false,
  "parent_pin_id":null,

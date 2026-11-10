@@ -14,7 +14,7 @@ export function OnboardingForm() {
   const [s, act, pending] = useActionState(A.createOrgAndWorkspace, null);
   return (
     <form action={act} className="space-y-4">
-      <div><label className="label" htmlFor="org">Your business or agency name</label><input className="input" id="org" name="org" required minLength={2} defaultValue="My PinPulse" /></div>
+      <div><label className="label" htmlFor="org">Your business or agency name</label><input className="input" id="org" name="org" required minLength={2} defaultValue="My PinInova" /></div>
       <div><label className="label" htmlFor="workspace">First workspace</label><input className="input" id="workspace" name="workspace" required defaultValue="My Pinterest" />
         <p className="muted mt-1 text-xs">One workspace per Pinterest client. Clients never see each other's data.</p></div>
       <fieldset><legend className="label">This workspace is for</legend>

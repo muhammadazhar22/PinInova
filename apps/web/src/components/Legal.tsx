@@ -6,7 +6,7 @@ export function LegalDoc({ title, children }: { title: string; children: ReactNo
   const f = legalFacts();
   return (
     <main className="mx-auto max-w-3xl px-4 py-12 text-[15px] leading-relaxed">
-      <p className="text-sm font-semibold text-brand-700"><Link href="/">PinPulse</Link></p>
+      <p className="text-sm font-semibold text-brand-700"><Link href="/">PinInova</Link></p>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">{title}</h1>
       <p className="muted mt-2 text-sm">Effective {f.effectiveDate}. Operated by {f.operator}. Questions: {f.supportEmail}.</p>
       <div className="legal mt-8 space-y-6">{children}</div>
@@ -31,7 +31,7 @@ export function LegalFooter() {
         <Link href="/terms">Terms</Link>
         <Link href="/refunds">Refunds</Link>
       </nav>
-      <p className="mt-2">PinPulse is not affiliated with, endorsed by, or approved by Pinterest.</p>
+      <p className="mt-2">PinInova is not affiliated with, endorsed by, or approved by Pinterest.</p>
     </footer>
   );
 }

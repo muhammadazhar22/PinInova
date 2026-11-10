@@ -39,7 +39,7 @@ export async function eraseUser(userId: string) {
   await sql`SELECT system_anonymise_actor(${userId})`;
   await sql`DELETE FROM "user" WHERE id = ${userId}`;
   // Confirmation is sent directly and never stored, so the erased address does not persist in the outbox.
-  await sendEmailNow({ to: u.email, subject: "Your PinPulse account was deleted", html: "<p>Your PinPulse account and the Pinterest data it held have been deleted.</p>" })
+  await sendEmailNow({ to: u.email, subject: "Your PinInova account was deleted", html: "<p>Your PinInova account and the Pinterest data it held have been deleted.</p>" })
     .catch((err) => console.error(JSON.stringify({ msg: "erasure.confirmation_failed", error: (err as Error).message })));
   return { deletedOrgs };
 }

@@ -111,7 +111,7 @@ export async function attributionData(tx: Tx, connectionId: string) {
   return { leaks, links: links.map((l) => l.link) };
 }
 
-/** GDPR portability: everything PinPulse holds for this workspace (no tokens). */
+/** GDPR portability: everything PinInova holds for this workspace (no tokens). */
 export async function exportWorkspace(tx: Tx) {
   const q = (t: string) => tx.unsafe(`SELECT * FROM ${t} WHERE workspace_id = app_workspace_id()`);
   const conns = await tx`SELECT id, mode, pinterest_user_id, username, account_type, scopes, status, created_at, disconnected_at, last_synced_at, claimed_sites FROM pinterest_connection`;

@@ -777,7 +777,7 @@ export async function createMockServer(options: MockServerOptions = {}): Promise
       if (p === "/" && method === "GET") {
         sendJson(res, 200, {
           mock: true,
-          name: "MOCK Pinterest API v5 (PinPulse services/pinterest-mock)",
+          name: "MOCK Pinterest API v5 (PinInova services/pinterest-mock)",
           notice: "This is NOT Pinterest. All accounts and data are synthetic.",
           api_base: `${apiBase}/v5`,
           oauth_authorize: `${apiBase}/oauth/`,

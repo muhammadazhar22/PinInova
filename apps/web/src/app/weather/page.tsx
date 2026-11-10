@@ -13,7 +13,7 @@ export default async function WeatherPage({ searchParams }: { searchParams: Prom
   const color = (l: string, insufficient?: boolean) => (insufficient ? "bg-stone-200" : l === "platform_wide" ? "bg-red-600" : l === "elevated" ? "bg-amber-500" : "bg-teal-600");
   return (
     <main className="mx-auto max-w-4xl px-4 py-10">
-      <Link href="/" className="text-sm font-semibold text-brand-700">PinPulse</Link>
+      <Link href="/" className="text-sm font-semibold text-brand-700">PinInova</Link>
       <h1 className="mt-3">Is it just me? Pinterest weather</h1>
       <p className="muted mt-1">Built only from anonymous reports people submit about their own accounts. It does not use any Pinterest account data. A red day means many reporters saw a drop start within two days of it.</p>
       <form className="mt-4 flex items-end gap-2"><label className="label" htmlFor="n">Niche</label>

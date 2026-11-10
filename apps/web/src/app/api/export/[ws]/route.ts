@@ -14,5 +14,5 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ ws: string 
   }, { manage: true }).catch(() => null);
   if (!data) return new NextResponse("Not allowed", { status: 403 });
   const body = JSON.stringify(data, (_k, v) => (typeof v === "bigint" ? Number(v) : v instanceof Buffer ? undefined : v), 2);
-  return new NextResponse(body, { headers: { "Content-Type": "application/json", "Content-Disposition": `attachment; filename="pinpulse-export-${ws.slice(0, 8)}.json"`, "Cache-Control": "no-store" } });
+  return new NextResponse(body, { headers: { "Content-Type": "application/json", "Content-Disposition": `attachment; filename="pininova-export-${ws.slice(0, 8)}.json"`, "Cache-Control": "no-store" } });
 }

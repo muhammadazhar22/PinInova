@@ -60,7 +60,7 @@ const schema = z.object({
 
   EMAIL_TRANSPORT: z.enum(["outbox", "resend"]).default("outbox"),
   RESEND_API_KEY: z.string().optional(),
-  EMAIL_FROM: z.string().default("PinPulse <alerts@pinpulse.local>"),
+  EMAIL_FROM: z.string().default("PinInova <alerts@pininova.local>"),
 
   GA4_MODE: z.enum(["mock", "csv"]).default("csv"),
   SHOPIFY_MODE: z.enum(["mock", "csv"]).default("csv"),

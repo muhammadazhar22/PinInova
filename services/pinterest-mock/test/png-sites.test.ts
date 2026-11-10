@@ -129,11 +129,11 @@ describe("mock websites", () => {
   it("logs requests with user agents; reset clears the log", async () => {
     await fetch(`${env.sites.url}/__requests/reset`, { method: "POST" });
     await site("/garden-notes/small-garden-ideas-p1", { headers: { "user-agent": "Pinterest/0.2 (+https://www.pinterest.com/bot.html)" } });
-    await site("/deal-hub/robots.txt", { headers: { "user-agent": "PinPulseIntegrity/1.0" } });
+    await site("/deal-hub/robots.txt", { headers: { "user-agent": "PinInovaIntegrity/1.0" } });
     const log = ((await (await fetch(`${env.sites.url}/__requests`)).json()) as { requests: unknown[] }).requests;
     expect(log).toHaveLength(2);
     expect(log[0]).toMatchObject({ method: "GET", path: "/garden-notes/small-garden-ideas-p1", slug: "garden-notes", user_agent: "Pinterest/0.2 (+https://www.pinterest.com/bot.html)", status: 200 });
-    expect(log[1]).toMatchObject({ slug: "deal-hub", user_agent: "PinPulseIntegrity/1.0" });
+    expect(log[1]).toMatchObject({ slug: "deal-hub", user_agent: "PinInovaIntegrity/1.0" });
     await fetch(`${env.sites.url}/__requests/reset`, { method: "POST" });
     expect(((await (await fetch(`${env.sites.url}/__requests`)).json()) as { requests: unknown[] }).requests).toHaveLength(0);
   });

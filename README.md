@@ -1,4 +1,4 @@
-# PinPulse
+# PinInova
 
 Pinterest account health, diagnosis and protection for VAs, agencies, bloggers and shop owners.
 
@@ -32,7 +32,7 @@ scripts/dev-stack.sh                    # mock Pinterest :4010/:4011, analytics 
 Open http://localhost:3000, sign up, create a workspace and press **Connect Pinterest account**. You land on a page
 titled "MOCK Pinterest — not the real Pinterest"; pick one of the scenario accounts:
 
-| Mock account | What PinPulse should find |
+| Mock account | What PinInova should find |
 |---|---|
 | `mock_healthy` | nothing wrong |
 | `mock_platform_cliff` | 84% account-wide cut, engagement per view unchanged → platform-side change |

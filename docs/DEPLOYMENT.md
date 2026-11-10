@@ -1,11 +1,11 @@
-# PinPulse — From Repo to Production: Deployment Plan
+# PinInova — From Repo to Production: Deployment Plan
 
 Copy of the Claude doc https://claude.ai/artifact/72qL45x2hTxGuUJ6mQBsvk (as of 9 Nov 2026), kept in the repo so
 coding agents can read it. The doc is the editable original; update both if the plan changes.
 
 ## Where things stand
 
-PinPulse can realistically be live for paying customers in **mid-to-late January 2027**. The code is done and
+PinInova can realistically be live for paying customers in **mid-to-late January 2027**. The code is done and
 tested against a mock Pinterest; what remains is mostly waiting on outside approvals, plus about a week of
 deployment work.
 

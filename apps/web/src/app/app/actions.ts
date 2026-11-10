@@ -40,7 +40,7 @@ function fail(e: unknown): ActionState {
 // Onboarding ---------------------------------------------------------------------------------
 export async function createOrgAndWorkspace(_: ActionState, f: FormData): Promise<ActionState> {
   const user = await requireUser();
-  const orgName = z.string().min(2).max(80).parse(String(f.get("org") || "My PinPulse"));
+  const orgName = z.string().min(2).max(80).parse(String(f.get("org") || "My PinInova"));
   const wsName = z.string().min(1).max(120).parse(String(f.get("workspace") || "My Pinterest"));
   const kind = f.get("kind") === "client" ? "client" : "own";
   const niche = String(f.get("niche") || "") || null;
@@ -286,7 +286,7 @@ export async function ordersAction(_: ActionState, f: FormData): Promise<ActionS
     await asUser(user.id, ws, async () => null, { manage: true });
     const r = await importOrdersCsv(ws, conn, user.id, await readCsv(f));
     revalidatePath(`/app/w/${ws}/attribution`);
-    return { ok: true, message: `Imported ${r.rows} orders; ${r.matched} carried a PinPulse token.` };
+    return { ok: true, message: `Imported ${r.rows} orders; ${r.matched} carried a PinInova token.` };
   } catch (e) {
     return fail(e);
   }

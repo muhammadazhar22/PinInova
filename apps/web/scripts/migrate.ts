@@ -1,5 +1,5 @@
 /**
- * Runs Better Auth's schema migration, then PinPulse's SQL migrations in order, as the schema owner.
+ * Runs Better Auth's schema migration, then PinInova's SQL migrations in order, as the schema owner.
  * Usage: DATABASE_OWNER_URL=... tsx scripts/migrate.ts
  */
 import { readdir, readFile } from "node:fs/promises";

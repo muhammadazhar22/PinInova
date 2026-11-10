@@ -9,7 +9,7 @@ import { Pool } from "pg";
  */
 export function authOptions(connectionString: string, baseURL: string, secret: string): BetterAuthOptions {
   return {
-    appName: "PinPulse",
+    appName: "PinInova",
     baseURL,
     secret,
     database: new Pool({ connectionString, max: 5 }),
@@ -20,7 +20,7 @@ export function authOptions(connectionString: string, baseURL: string, secret: s
     plugins: [organization({
       allowUserToCreateOrganization: true,
       creatorRole: "owner",
-      // Deleting an org must go through PinPulse's erasure path (disconnect + purge + audit), never a raw cascade.
+      // Deleting an org must go through PinInova's erasure path (disconnect + purge + audit), never a raw cascade.
       disableOrganizationDeletion: true,
     })],
   };

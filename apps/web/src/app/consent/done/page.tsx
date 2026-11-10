@@ -11,10 +11,10 @@ export default async function ConsentDone() {
       {token ? (
         <div className="card mt-6">
           <h2>Keep this link to revoke access</h2>
-          <p className="muted mt-1 text-sm">Shown once. Opening it lets you disconnect PinPulse and delete your data at any time. You can also remove the app in your Pinterest settings.</p>
+          <p className="muted mt-1 text-sm">Shown once. Opening it lets you disconnect PinInova and delete your data at any time. You can also remove the app in your Pinterest settings.</p>
           <p className="mt-3 break-all rounded bg-stone-100 p-2 font-mono text-xs"><a className="hover:underline" href={`/revoke/${token}`}>{`${process.env.APP_URL ?? "http://localhost:3000"}/revoke/${token}`}</a></p>
         </div>
-      ) : <p className="mt-6 text-sm">To revoke access later, remove PinPulse in your Pinterest account settings or ask your agency.</p>}
+      ) : <p className="mt-6 text-sm">To revoke access later, remove PinInova in your Pinterest account settings or ask your agency.</p>}
     </main>
   );
 }

@@ -1,4 +1,4 @@
-# PinPulse staging/production stack on one VPS (docs/DEPLOYMENT.md Step 3).
+# PinInova staging/production stack on one VPS (docs/DEPLOYMENT.md Step 3).
 #   web + worker + analytics (+ MOCK Pinterest while PINTEREST_MODE=mock) behind Caddy; Postgres is Neon (external).
 # Run from /opt/pinpulse on the server via infra/deploy.sh, which sets IMAGE_TAG and picks the Caddy sites.
 # Secrets live in /opt/pinpulse/.env (mode 600, never in git); see docs/runbooks/staging-setup.md.

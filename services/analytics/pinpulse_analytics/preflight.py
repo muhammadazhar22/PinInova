@@ -1,7 +1,7 @@
 """Pre-flight checks on draft Pins (SPEC-021). Pure rules over drafts the user supplied; no Pinterest calls.
 
 policy: PA-04 - every rule is labelled `official` (Pinterest text), `vendor` (third-party advice) or
-`hypothesis` (community reports); thresholds are PinPulse's own and say so. No cross-account comparison.
+`hypothesis` (community reports); thresholds are PinInova's own and say so. No cross-account comparison.
 Rules were re-read against the Community Guidelines update effective 12 Nov 2026 (docs/PLAN.md section 2).
 """
 from __future__ import annotations
@@ -38,22 +38,22 @@ STOP = {"the", "and", "for", "with", "you", "your", "this", "that", "from", "are
 
 REF = {
     "same_url_7d": ("vendor", "Vendor guidance, not a Pinterest rule: Tailwind's scheduling advice is to space Pins "
-                    "that point to the same URL; the 7-day window is PinPulse's setting. Pinterest's Community "
+                    "that point to the same URL; the 7-day window is PinInova's setting. Pinterest's Community "
                     "Guidelines separately discourage repetitive content ('create, save, or distribute', 12 Nov "
                     "2026 update)."),
     "bulk_day": ("hypothesis", "Hypothesis from creator reports, not a published Pinterest rule: large same-day "
                  "publishing spikes may look like bulk or automated activity. The 25-per-day threshold is "
-                 "PinPulse's."),
+                 "PinInova's."),
     "ad_prefix": ("hypothesis", "Hypothesis from Pinterest Business Community reports that Pins whose description "
                   "starts with '#ad' lose distribution; Pinterest has not documented this."),
     "keyword_stuffing": ("official", "Pinterest Community Guidelines, spam: repetitive or keyword-stuffed content. "
-                         "The repetition and hashtag thresholds are PinPulse heuristics, not Pinterest numbers."),
+                         "The repetition and hashtag thresholds are PinInova heuristics, not Pinterest numbers."),
     "link_shortener": ("official", "Pinterest Community Guidelines, spam and misleading links (the 'no surprises' "
                        "rule, kept in the 12 Nov 2026 update). Treating shorteners and redirect parameters as "
-                       "deceptive-redirection risk is PinPulse's reading of that rule."),
+                       "deceptive-redirection risk is PinInova's reading of that rule."),
     "redirect_link": ("official", "Pinterest Community Guidelines, spam and misleading links (the 'no surprises' "
                       "rule, kept in the 12 Nov 2026 update). Treating redirect parameters as deceptive-redirection "
-                      "risk is PinPulse's reading of that rule."),
+                      "risk is PinInova's reading of that rule."),
     "title_length": ("official", "Pinterest API v5 Pin create: title is limited to 100 characters."),
     "missing_link": ("official", "Informational, not a violation: a Pin without a link cannot send outbound clicks "
                      "(Pinterest allows Pins without links)."),

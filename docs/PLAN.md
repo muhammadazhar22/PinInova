@@ -1,10 +1,10 @@
-# PinPulse — Production Master Plan (Agent-Driven Build)
+# PinInova — Production Master Plan (Agent-Driven Build)
 
 Nov 7, 2026 · @Muhammad Azhar
 
 ## Executive summary
 
-PinPulse is a Pinterest account health, diagnosis and protection service, built by one founder with agent-driven engineering, that answers the question Pinterest's own support staff say they cannot: "what happened to my account, and is it just me?" The thesis: creating and scheduling Pins is crowded (Tailwind, PinClicks, PinGenerator, 10+ AI tools); watching a Pin after it is published is empty. In 2026 creators report overnight 66–99% reach collapses clustered on shared dates (8 May, 18 Aug, 24–27 Sep), Pinterest's forum guide says moderators cannot tell whether an account is flagged or limited, and no product diagnoses drops. First buyer: Pinterest virtual assistants and small agencies managing 5–30 client accounts, who need an answer for the client before the client churns.
+PinInova is a Pinterest account health, diagnosis and protection service, built by one founder with agent-driven engineering, that answers the question Pinterest's own support staff say they cannot: "what happened to my account, and is it just me?" The thesis: creating and scheduling Pins is crowded (Tailwind, PinClicks, PinGenerator, 10+ AI tools); watching a Pin after it is published is empty. In 2026 creators report overnight 66–99% reach collapses clustered on shared dates (8 May, 18 Aug, 24–27 Sep), Pinterest's forum guide says moderators cannot tell whether an account is flagged or limited, and no product diagnoses drops. First buyer: Pinterest virtual assistants and small agencies managing 5–30 client accounts, who need an answer for the client before the client churns.
 
 The plan commits to five decisions:
 
@@ -46,16 +46,16 @@ The research streams in this document closed two of three gaps: competitor prici
 
 ### Competitive map (prior research; stream 3 updates it below)
 
-| Category | Players | Post-publish monitoring | Position vs PinPulse |
+| Category | Players | Post-publish monitoring | Position vs PinInova |
 | --- | --- | --- | --- |
-| Schedulers | Tailwind, Planoly, Later, Buffer, Metricool | Basic analytics, no drop diagnosis | Partners, not competitors; PinPulse sits alongside |
+| Schedulers | Tailwind, Planoly, Later, Buffer, Metricool | Basic analytics, no drop diagnosis | Partners, not competitors; PinInova sits alongside |
 | AI pin generators | PinGenerator, BlogToPin, Outfy, 10+ indie tools | None | Irrelevant to the health job |
 | Research / keyword | PinClicks, Pin Inspector, Pinterest Trends | PinClicks Pin Plus: AI-label and Visit-site alerts | Closest partial competitor; opaque methods |
-| "Shadowban checkers" | Circleboom, PostEverywhere | Opaque or no Pinterest support | Credibility gap PinPulse exploits with transparent evidence |
+| "Shadowban checkers" | Circleboom, PostEverywhere | Opaque or no Pinterest support | Credibility gap PinInova exploits with transparent evidence |
 
 ## 2. Platform constraints (verified 7 Nov 2026)
 
-Pinterest's API gives enough to build the health scan, and its Developer Terms (last updated August 2026) decide what PinPulse may keep, pool and automate. Facts below come from the official OpenAPI spec (v5.28.0), developers.pinterest.com, policy.pinterest.com and the Business Community; quoted fragments are verbatim.
+Pinterest's API gives enough to build the health scan, and its Developer Terms (last updated August 2026) decide what PinInova may keep, pool and automate. Facts below come from the official OpenAPI spec (v5.28.0), developers.pinterest.com, policy.pinterest.com and the Business Community; quoted fragments are verbatim.
 
 ### API v5 facts that shape the design
 
@@ -76,7 +76,7 @@ Pinterest's API gives enough to build the health scan, and its Developer Terms (
 
 ### Developer Terms and Guidelines: the clauses that bind
 
-| Topic | Clause (verbatim fragment) | PinPulse rule |
+| Topic | Clause (verbatim fragment) | PinInova rule |
 | --- | --- | --- |
 | Storage | "you may not store any information accessed through any Pinterest Materials"; exception in Terms §4.1(a) for "campaign analytics information" about accounts the holder "has expressly granted you access" | Store numbers only (metrics), never Pin content or images; get written consent email that organic analytics snapshots qualify |
 | Combining | "Don't combine someone's account information with information from other people's accounts" | Strict per-tenant isolation; no cross-tenant models; weather index gated |
@@ -86,7 +86,7 @@ Pinterest's API gives enough to build the health scan, and its Developer Terms (
 | PII | "You will not join any Pinterest Data with personally identifiable information" | Shopify join uses order UTMs and amounts, never customer identity |
 | Actions | No actions "without their specific knowledge and consent"; no features that "automatically initiate actions" | Read scopes only in v1; any future fix is one Pin, one confirmation |
 | Review | Submit "for review and approval prior to distribution"; material changes need re-review | Version the feature set; notify Pinterest on scope changes |
-| Intermediary tools | Terms now name "Model Context Protocol (MCP) servers, wrappers, plugins, middleware, agents" | A PinPulse MCP server is covered by the same review |
+| Intermediary tools | Terms now name "Model Context Protocol (MCP) servers, wrappers, plugins, middleware, agents" | A PinInova MCP server is covered by the same review |
 
 ### Policy changes on 12 Nov 2026
 
@@ -105,7 +105,7 @@ Questions already drafted for Pinterest developer support: scope of the analytic
 
 ## 3. Product definition
 
-PinPulse ships as four releases, each with a single sentence a VA can repeat to a client, and each gated by a measurable result from the one before.
+PinInova ships as four releases, each with a single sentence a VA can repeat to a client, and each gated by a measurable result from the one before.
 
 | Release | Promise to the user | Modules | Gate to proceed |
 | --- | --- | --- | --- |
@@ -184,11 +184,11 @@ The seeded repo generates 300 synthetic accounts (negative-binomial daily impres
 
 ### What the audit literature warns
 
-Deterministic probes beat inference: Le Merrer et al. (2021) proved Twitter shadowbans with black-box visibility tests and no false positives, so PinPulse guides users through their own search-visibility check rather than inferring it. Ibrahim & Girmay (2026) show pooled Pin-day observations inflate significance by a design effect near 180; the account is the unit of inference and tests are cluster-robust. Pinterest's published ranking work (PinSage, TransAct, PinRec) confirms hides are an explicit negative head, saves and clicks are positives, retrieval is outcome-conditioned (a plausible class D mechanism), and models retrain about twice weekly, so platform steps can land on specific weekdays.
+Deterministic probes beat inference: Le Merrer et al. (2021) proved Twitter shadowbans with black-box visibility tests and no false positives, so PinInova guides users through their own search-visibility check rather than inferring it. Ibrahim & Girmay (2026) show pooled Pin-day observations inflate significance by a design effect near 180; the account is the unit of inference and tests are cluster-robust. Pinterest's published ranking work (PinSage, TransAct, PinRec) confirms hides are an explicit negative head, saves and clicks are positives, retrieval is outcome-conditioned (a plausible class D mechanism), and models retrain about twice weekly, so platform steps can land on specific weekdays.
 
 ### Graph engineering: verdict
 
-Graph engineering is not required as infrastructure, is useful as a modelling lens, and a graph database is not justified at v1 or v2. Pinterest's own distribution and enforcement systems are graph-driven, so thinking in graphs tells PinPulse which signals to compute; but inside one account's data (at most about 5,000 Pins, a few hundred boards, tens of domains) every graph that can legally be built is tiny, shallow (one or two hops) and star-shaped, and Postgres joins plus about fifty lines of numpy or NetworkX cover it.
+Graph engineering is not required as infrastructure, is useful as a modelling lens, and a graph database is not justified at v1 or v2. Pinterest's own distribution and enforcement systems are graph-driven, so thinking in graphs tells PinInova which signals to compute; but inside one account's data (at most about 5,000 Pins, a few hundred boards, tens of domains) every graph that can legally be built is tiny, shallow (one or two hops) and star-shaped, and Postgres joins plus about fifty lines of numpy or NetworkX cover it.
 
 | Part | Graph needed? | What to build |
 | --- | --- | --- |
@@ -202,11 +202,11 @@ Graph engineering is not required as infrastructure, is useful as a modelling le
 
 What Pinterest's graph papers expose as creator-side levers, all computable from one account: board placement and topical coherence (Pixie prunes high-entropy boards and mis-categorised Pin–board edges, and smaller focused boards walk better); saves from others (each save is a new Pin–board edge in PinSage's neighbourhood); domain concentration (SEINE uses the proportion of a user's interactions with each domain as an edge feature); and duplicate image signatures (Pinterest's near-duplicate system collapses clusters to one canonical Pin and filters the rest from feeds and search, so re-posting one image to many boards or URLs starves the copies).
 
-The root-cause-analysis literature settles the classifier question: learned causal discovery (PC, GES, LiNGAM) performed about as well as random picks in a 2024 ASE study of 21 methods, while knowledge-informed structure (Alibaba's CloudRCA lost 0.1–0.2 F1 without predefined knowledge; Microsoft's CIRCA uses an architecture-derived DAG) and simple statistical baselines were the strongest. PinPulse therefore hand-draws its DAG and never tries to learn one from 90-day series. Tooling reviewed and set aside: Neo4j (GPL/commercial split), Memgraph (BSL), Kuzu (archived after Apple's acquisition; LadybugDB is the maintained fork), Apache AGE 1.8 and DuckPGQ (fine for notebooks, not production), PyG (needs many labelled graphs). Two policy flags recorded: a perceptual hash is derived, non-reversible data but still "information" under a strict reading of the storage clause, so hashes are computed transiently and only cluster membership is persisted until Pinterest answers in writing; and duplicate-cluster views show Pin ids and links, never re-hosted images.
+The root-cause-analysis literature settles the classifier question: learned causal discovery (PC, GES, LiNGAM) performed about as well as random picks in a 2024 ASE study of 21 methods, while knowledge-informed structure (Alibaba's CloudRCA lost 0.1–0.2 F1 without predefined knowledge; Microsoft's CIRCA uses an architecture-derived DAG) and simple statistical baselines were the strongest. PinInova therefore hand-draws its DAG and never tries to learn one from 90-day series. Tooling reviewed and set aside: Neo4j (GPL/commercial split), Memgraph (BSL), Kuzu (archived after Apple's acquisition; LadybugDB is the maintained fork), Apache AGE 1.8 and DuckPGQ (fine for notebooks, not production), PyG (needs many labelled graphs). Two policy flags recorded: a perceptual hash is derived, non-reversible data but still "information" under a strict reading of the storage clause, so hashes are computed transiently and only cluster membership is persisted until Pinterest answers in writing; and duplicate-cluster views show Pin ids and links, never re-hosted images.
 
 ## 5. Product design
 
-The brand stance is calm, forensic and independent: the market's tone is either panic ("read this before you spiral") or denial ("shadowbanning is a myth"), and PinPulse is the clinician who shows evidence, a confidence level and the next action. The vocabulary is Pinterest's own: "Limited distribution", "shown less often", "link-quality demotion", "spam-filter false positive". The word "shadowban" appears only on the SEO landing page that reframes it.
+The brand stance is calm, forensic and independent: the market's tone is either panic ("read this before you spiral") or denial ("shadowbanning is a myth"), and PinInova is the clinician who shows evidence, a confidence level and the next action. The vocabulary is Pinterest's own: "Limited distribution", "shown less often", "link-quality demotion", "spam-filter false positive". The word "shadowban" appears only on the SEO landing page that reframes it.
 
 ### Design principles
 
@@ -317,7 +317,7 @@ The scheduler is pg-boss (Postgres-backed, no Redis): a `nightly_plan` cron at 0
 | --- | --- | --- |
 | Pin content (titles, descriptions, images, board names) | Not persisted; fetched on demand, cached in memory up to 1 hour | Literal compliance with the storage clause |
 | Raw metrics per Pin per day (numbers) | Rolling 90 days, matching the API window; dropped by partition | A cache of what the user could re-fetch |
-| Derived outputs (incidents, issues, scores, reports, evidence packs) | 13 months default, tenant-configurable | PinPulse's own work product; still purged on disconnect |
+| Derived outputs (incidents, issues, scores, reports, evidence packs) | 13 months default, tenant-configurable | PinInova's own work product; still purged on disconnect |
 | Tokens | Until disconnect or revoke | Encrypted; one `TokenVault` access path with audit |
 | Audit log | 12 months hot, then cold | Agency accountability |
 
@@ -353,7 +353,7 @@ Versions are pinned in the repo's lockfiles; the stack is re-evaluated at each r
 
 ## 8. Security, privacy and compliance engineering
 
-PinPulse holds long-lived Pinterest tokens for other people's businesses, so token handling, tenant isolation and deletion are engineered, not policies. The threat model names four assets: OAuth tokens, per-tenant metrics, agency-client trust boundaries, and the Pinterest app registration itself (losing it ends the business).
+PinInova holds long-lived Pinterest tokens for other people's businesses, so token handling, tenant isolation and deletion are engineered, not policies. The threat model names four assets: OAuth tokens, per-tenant metrics, agency-client trust boundaries, and the Pinterest app registration itself (losing it ends the business).
 
 ### Controls by layer
 
@@ -369,7 +369,7 @@ PinPulse holds long-lived Pinterest tokens for other people's businesses, so tok
 | Supply chain | Dependabot weekly grouped updates; Trivy filesystem and image scans as SARIF, failing on fixable HIGH/CRITICAL; CycloneDX SBOM per release; `pnpm audit --audit-level=high`; CodeQL | CI jobs; release checklist |
 | Own API and UI | Per-IP and per-user token bucket at the edge (Vercel WAF rules or Hono middleware on a Postgres `rate_limit` table); stricter limits on login and OAuth callback; CSRF via Better Auth; CSP with nonces | Load test with k6 on preview |
 | Webhooks | Paddle signature verification on the raw body; Shopify `X-Shopify-Hmac-Sha256` with `timingSafeEqual`, 200 within 5 s, async processing, mandatory `customers/data_request`, `customers/redact`, `shop/redact` handlers | Contract tests with recorded payloads |
-| Link checks | Fetch only the user's own Pin URLs; Pinterestbot UA strings exactly as published; honest secondary header `X-PinPulse-Check: 1`; at most 1 request/s per domain; respect Crawl-delay; redirect chains capped at 10 | Unit tests on the fetcher; allowlist of target domains = the tenant's claimed and linked domains |
+| Link checks | Fetch only the user's own Pin URLs; Pinterestbot UA strings exactly as published; honest secondary header `X-PinInova-Check: 1`; at most 1 request/s per domain; respect Crawl-delay; redirect chains capped at 10 | Unit tests on the fetcher; allowlist of target domains = the tenant's claimed and linked domains |
 | Agent sandbox | Claude Code sandbox with `allowUnsandboxedCommands: false`, strict network allowlist (registry.npmjs.org, pypi.org, github.com), credentials denied; Postgres MCP read-only on a dev branch; no production secrets on dev machines | `.claude/settings.json` reviewed in every PR that touches it; hook that rejects diffs deleting test files |
 
 ### Pinterest-specific compliance program
@@ -490,7 +490,7 @@ Approve specs; review migrations and anything touching tokens, RLS, deletion or 
 
 ## 11. Testing and evaluation strategy
 
-PinPulse has four things to evaluate, and each needs its own harness: the detector (does it find real cliffs and name the cause?), the alerts (do users find them useful?), the software (does it work and stay compliant?), and the agents that build it (are they getting better or gaming the tests?). The rule across all four: the thing being evaluated never controls its own evaluation data.
+PinInova has four things to evaluate, and each needs its own harness: the detector (does it find real cliffs and name the cause?), the alerts (do users find them useful?), the software (does it work and stay compliant?), and the agents that build it (are they getting better or gaming the tests?). The rule across all four: the thing being evaluated never controls its own evaluation data.
 
 ### A. Detector evaluation
 
@@ -560,7 +560,7 @@ The buyer's money is already on the table: a Pinterest manager's published tool 
 | Metricool | Free to $159; about $3 per marginal brand | Cross-network reports | None |
 | Circleboom | "Pinterest shadowban checker" page with unexplained method | None | None |
 
-No tool does changepoint detection, cause classification, cohort comparison or evidence packs. PINREVOS could not be found and is treated as non-existent until shown otherwise. Pinterest's own Business Assistant (June 2026, closed beta) and MCP server (alpha, holding-company agencies) are ads-centric; PinPulse positions on organic, multi-client and independent evidence.
+No tool does changepoint detection, cause classification, cohort comparison or evidence packs. PINREVOS could not be found and is treated as non-existent until shown otherwise. Pinterest's own Business Assistant (June 2026, closed beta) and MCP server (alpha, holding-company agencies) are ads-centric; PinInova positions on organic, multi-client and independent evidence.
 
 ### Pricing ladder
 
@@ -633,7 +633,7 @@ Kill criteria (repeated from section 12): fewer than 10 concierge audits by week
 
 ## 14. Risks, open questions and decisions needed
 
-The plan's single largest risk is policy, not competition or engineering: PinPulse's whole product depends on one Pinterest app registration, and one enforcement email could end it. Everything in sections 2, 6 and 8 is designed to make that email unlikely; the items below are what remains.
+The plan's single largest risk is policy, not competition or engineering: PinInova's whole product depends on one Pinterest app registration, and one enforcement email could end it. Everything in sections 2, 6 and 8 is designed to make that email unlikely; the items below are what remains.
 
 ### Risk register
 

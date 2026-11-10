@@ -313,7 +313,7 @@ function generateAccount(seed: number, today: number, firstDay: number, def: Acc
       createdAt,
       boardIdx,
       title: titleCase(title),
-      description: `${titleCase(title)}. MOCK Pin with synthetic data for PinPulse development.`,
+      description: `${titleCase(title)}. MOCK Pin with synthetic data for PinInova development.`,
       altText: rng.chance(0.3) ? `Photo: ${title}` : null,
       linkPath,
       domainSlug: domain ? domain.slug : null,

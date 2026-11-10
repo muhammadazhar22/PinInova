@@ -4,9 +4,9 @@ import { bareHost, isBlockedAddress, safeLookup } from "@/lib/ssrf";
 import net from "node:net";
 
 export const UA = {
-  // policy: PA-07 — Pinterest's published crawler strings; an honest secondary header identifies PinPulse.
+  // policy: PA-07 — Pinterest's published crawler strings; an honest secondary header identifies PinInova.
   pinterestbot: "Mozilla/5.0 (compatible; Pinterestbot/1.0; +https://www.pinterest.com/bot.html)",
-  honest: "PinPulseLinkCheck/1.0 (+https://pinpulse.app/link-check)",
+  honest: "PinInovaLinkCheck/1.0 (+https://pininova.app/link-check)",
 } as const;
 
 export interface Hop {
@@ -49,7 +49,7 @@ function once(url: URL, o: FetchOptions): Promise<{ status: number; location: st
       {
         method: "GET",
         lookup: safeLookup(o.allowPrivate),
-        headers: { "User-Agent": UA[o.uaMode], "X-PinPulse-Check": "1", Accept: "text/html,*/*;q=0.8" },
+        headers: { "User-Agent": UA[o.uaMode], "X-PinInova-Check": "1", Accept: "text/html,*/*;q=0.8" },
         timeout: o.timeoutMs ?? 8000,
       },
       (res) => {

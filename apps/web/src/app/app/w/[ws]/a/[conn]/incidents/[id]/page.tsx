@@ -42,7 +42,7 @@ export default async function IncidentPage({ params }: { params: Promise<{ ws: s
               <ul className="mt-1 list-disc space-y-1 pl-5 text-sm">{r.evidence.map((e, i) => <li key={i}>{e.text}</li>)}</ul>
               <h3 className="mt-4 text-sm font-semibold">What not to waste time on</h3>
               <ul className="mt-1 list-disc space-y-1 pl-5 text-sm">{(DONT[top!.cause] ?? []).map((t) => <li key={t}>{t}</li>)}</ul>
-              <p className="muted mt-4 text-xs">This is a likely explanation from this account's own numbers, not a confirmation from Pinterest. PinPulse does not promise recovery.</p>
+              <p className="muted mt-4 text-xs">This is a likely explanation from this account's own numbers, not a confirmation from Pinterest. PinInova does not promise recovery.</p>
             </>
           ) : <p>Not enough data to name a cause yet. We re-analyse after each sync.</p>}
         </Card>

@@ -1,4 +1,4 @@
-"""PinPulse detection and diagnosis engine (v1). Specs: SPEC-011, SPEC-012, SPEC-013, SPEC-014.
+"""PinInova detection and diagnosis engine (v1). Specs: SPEC-011, SPEC-012, SPEC-013, SPEC-014.
 
 Pure functions over ONE account's daily series. No I/O, no storage, no Pinterest calls.
 The API (`api.py`) and the benchmark (`benchmark.py`) both call `diagnose(DiagnoseRequest)`.

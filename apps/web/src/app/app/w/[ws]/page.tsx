@@ -41,7 +41,7 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
       </Card>
       {acc.canManage && (
         <Card title="Invite a client to connect their account">
-          <p className="muted mb-3 text-sm">Your client authorizes Pinterest themselves after reading what PinPulse accesses. You never handle their password or tokens. A consent record is kept for every connection.</p>
+          <p className="muted mb-3 text-sm">Your client authorizes Pinterest themselves after reading what PinInova accesses. You never handle their password or tokens. A consent record is kept for every connection.</p>
           <ConsentLinkForm ws={ws} />
           {data.consentLinks.length > 0 && (
             <table className="data mt-4"><thead><tr><th>Created</th><th>Client</th><th>Status</th></tr></thead><tbody>

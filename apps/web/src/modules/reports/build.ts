@@ -29,7 +29,7 @@ async function brandFor(orgId: string, tx: Tx): Promise<Brand> {
   }
   return ent.whiteLabel
     ? { name: o?.name ?? "", color, footer: `Prepared by ${o?.name ?? ""}.` }
-    : { name: o?.name ?? "", color: "#0f766e", footer: "Prepared with PinPulse. PinPulse is not affiliated with Pinterest." };
+    : { name: o?.name ?? "", color: "#0f766e", footer: "Prepared with PinInova. PinInova is not affiliated with Pinterest." };
 }
 
 async function series(tx: Tx, connectionId: string, start: string, end: string) {
@@ -150,7 +150,7 @@ ${r.breadth.unlinked_ratio !== null ? `<tr><td>Pins without a link</td><td>${fmt
 <h2>Landing-page checks</h2>${checks.length ? `<table><tr><th>URL</th><th>Status</th><th>Load</th><th>Redirects</th><th>robots.txt</th></tr>${checks.map((c) => `<tr><td>${h(c.url)}</td><td>${c.http_status ?? h(c.error ?? "")}</td><td>${c.total_ms ?? "–"} ms</td><td>${c.hops.length}</td><td>${c.robots?.blocked ? "blocks Pinterestbot" : "ok"}${c.robots?.crawlDelay ? ` (crawl-delay ${c.robots.crawlDelay})` : ""}</td></tr>`).join("")}</table>` : "<p>No checks run yet.</p>"}
 <h2>What you observed in Pinterest</h2>${observed.length ? `<ul>${observed.map((o) => `<li>${h(o.observed_on)}: ${h(o.kind.replace(/_/g, " "))}${o.note ? ` — ${h(o.note)}` : ""}</li>`).join("")}</ul>` : "<p>None recorded. Add screenshots you take in Pinterest to your ticket.</p>"}
 <h2>Suggested ticket text</h2><p class="muted">Submit once, under Pinterest's creator-stats-drop category. Pinterest limits how many appeals and reports one person can file, so avoid duplicates.</p><pre>${h(ticket)}</pre>
-<div class="foot">${h(brand.footer)} This pack states facts from your account's data and PinPulse's checks; it does not assert what Pinterest did.</div></body></html>`;
+<div class="foot">${h(brand.footer)} This pack states facts from your account's data and PinInova's checks; it does not assert what Pinterest did.</div></body></html>`;
     const [rep] = await tx<{ id: string }[]>`
       INSERT INTO report (workspace_id, connection_id, kind, incident_id, period_start, period_end, html, created_by)
       VALUES (${workspaceId}, ${inc.connection_id}, 'evidence_pack', ${incidentId}, ${s.dates[0]!}, ${s.dates.at(-1)!}, ${html}, ${actor}) RETURNING id`;

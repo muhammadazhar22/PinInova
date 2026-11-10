@@ -2,7 +2,7 @@
   "name": "@pinpulse/pinterest-mock",
   "version": "0.1.0",
   "private": true,
-  "description": "MOCK Pinterest API v5 + mock websites for PinPulse development and tests. Not Pinterest; all data is synthetic.",
+  "description": "MOCK Pinterest API v5 + mock websites for PinInova development and tests. Not Pinterest; all data is synthetic.",
   "type": "module",
   "main": "./src/index.ts",
   "exports": {

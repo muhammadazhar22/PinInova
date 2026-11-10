@@ -13,7 +13,7 @@ export default async function AppHome() {
   if (!orgs.length && !workspaces.length) {
     return (
       <div className="mx-auto max-w-lg">
-        <h1>Set up PinPulse</h1>
+        <h1>Set up PinInova</h1>
         <p className="muted mb-4 mt-1">Create a workspace, then connect a Pinterest account. Access is read-only.</p>
         <Card><OnboardingForm /></Card>
       </div>

@@ -29,7 +29,7 @@ export default async function BillingPage() {
                   <ul className="muted mt-2 space-y-1 text-sm">
                     <li>{PLANS[p].accounts} account{PLANS[p].accounts > 1 ? "s" : ""}{PLANS[p].extraUsd ? `, +$${PLANS[p].extraUsd} each extra` : ""}</li>
                     <li>{PLANS[p].slack ? "Email and Slack alerts" : "Email alerts"}</li>
-                    <li>{PLANS[p].whiteLabel ? "White-label reports" : "PinPulse-branded reports"}</li>
+                    <li>{PLANS[p].whiteLabel ? "White-label reports" : "PinInova-branded reports"}</li>
                   </ul>
                   {PLANS[p].extraUsd > 0 && <label className="mt-2 block text-xs">Extra accounts <input className="input mt-1" name="extra" type="number" min={0} max={200} defaultValue={0} /></label>}
                   <button className="btn-primary mt-3" disabled={!simulated || ent.plan === p}>{ent.plan === p ? "Current plan" : simulated ? "Switch (simulated)" : "Checkout"}</button>

@@ -1,7 +1,7 @@
 [project]
 name = "pinpulse-analytics"
 version = "1.0.0"
-description = "PinPulse detection and diagnosis engine (stateless; one tenant per request; no Pinterest calls)"
+description = "PinInova detection and diagnosis engine (stateless; one tenant per request; no Pinterest calls)"
 requires-python = ">=3.11"
 dependencies = [
   "numpy>=2.0",          # np.bitwise_count for vectorised Hamming distance

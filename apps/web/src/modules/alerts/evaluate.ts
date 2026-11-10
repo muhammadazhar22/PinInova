@@ -87,7 +87,7 @@ export function renderAlert(username: string, tier: string, r: DiagnoseResponse)
     `Open the incident: ${env().APP_URL}/app`,
   ];
   const html = `<div style="font-family:system-ui,sans-serif;font-size:15px;line-height:1.5">${lines.map((l) => `<p>${escapeHtml(l)}</p>`).join("")}
-    <p style="color:#666;font-size:12px">PinPulse is not affiliated with Pinterest. Causes are likely explanations from your account's data, not confirmations from Pinterest.</p></div>`;
+    <p style="color:#666;font-size:12px">PinInova is not affiliated with Pinterest. Causes are likely explanations from your account's data, not confirmations from Pinterest.</p></div>`;
   return { title, text: lines.join("\n"), html };
 }
 

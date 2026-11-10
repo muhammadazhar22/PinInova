@@ -26,7 +26,7 @@ from .schemas import (
 from .weather import weather
 
 app = FastAPI(title="pinpulse-analytics", version=__version__,
-              description="Stateless detection and diagnosis engine for PinPulse. One tenant per request; "
+              description="Stateless detection and diagnosis engine for PinInova. One tenant per request; "
                           "nothing is stored; no Pinterest calls.")
 app.add_middleware(SharedSecretAuth)
 

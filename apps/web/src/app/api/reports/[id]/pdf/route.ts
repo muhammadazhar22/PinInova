@@ -11,5 +11,5 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
   const row = await asUser(session.user.id, ws, async (tx) => (await tx<{ pdf: Buffer | null; kind: string }[]>`SELECT pdf, kind FROM report WHERE id = ${id}`)[0]).catch(() => null);
   if (!row) return new NextResponse("Not found", { status: 404 });
   const pdf = row.pdf ?? (await renderReportPdf(ws, id));
-  return new NextResponse(new Uint8Array(pdf), { headers: { "Content-Type": "application/pdf", "Content-Disposition": `attachment; filename="pinpulse-${row.kind}-${id.slice(0, 8)}.pdf"`, "Cache-Control": "private, no-store" } });
+  return new NextResponse(new Uint8Array(pdf), { headers: { "Content-Type": "application/pdf", "Content-Disposition": `attachment; filename="pininova-${row.kind}-${id.slice(0, 8)}.pdf"`, "Cache-Control": "private, no-store" } });
 }

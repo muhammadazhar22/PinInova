@@ -115,7 +115,7 @@ export async function inviteClientViewer(actorId: string, workspaceId: string, e
       INSERT INTO viewer_invite (workspace_id, email, token_hash, invited_by, expires_at)
       VALUES (${workspaceId}, ${email}, ${hashToken(token)}, ${actorId}, now() + interval '14 days') RETURNING id`;
     const emailId = await queueEmail(tx, {
-      workspaceId, to: email, subject: `You're invited to view "${w?.name ?? "a workspace"}" on PinPulse`,
+      workspaceId, to: email, subject: `You're invited to view "${w?.name ?? "a workspace"}" on PinInova`,
       html: `<p>You've been invited to view the Pinterest health workspace <b>${escapeHtml(w?.name ?? "")}</b> (read-only).</p><p><a href="${url}">Accept the invitation</a> — the link works once and expires in 14 days.</p>`,
     });
     await audit(tx, { orgId: acc.orgId, workspaceId, actor: actorId, action: "workspace.invite_client_viewer", target: inv!.id });

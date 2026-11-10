@@ -1,6 +1,6 @@
 # pinpulse-analytics
 
-Stateless detection and diagnosis engine for PinPulse (Python package `pinpulse_analytics`, FastAPI).
+Stateless detection and diagnosis engine for PinInova (Python package `pinpulse_analytics`, FastAPI).
 Specs: SPEC-010 (CSV import), SPEC-011..014 (diagnose), SPEC-021 (pre-flight, duplicates), SPEC-030 (weather).
 
 - **One tenant per request, nothing stored.** No database, no cache, no request-body logging.
@@ -80,7 +80,7 @@ from the supplied history after trimming days with binomial tail p < 0.001; bino
 
 Rule ids: `same_url_7d` (vendor), `bulk_day` (hypothesis; >25 drafts on one UTC date; `draft_index` null),
 `ad_prefix` (hypothesis; description starts with `#ad`, not `#adventure`), `keyword_stuffing` (official spam rule;
-PinPulse thresholds: a token ≥4 times and ≥10% of words, >10 hashtags, or a repeated hashtag), `link_shortener`
+PinInova thresholds: a token ≥4 times and ≥10% of words, >10 hashtags, or a repeated hashtag), `link_shortener`
 (official no-surprises rule, error), `redirect_link` (same rule, warning), `title_length` (>100 chars, API limit,
 error), `missing_link` (info), `engagement_bait` (12 Nov 2026 guidelines, error). Drafts without `scheduled_at` are
 treated as publishing at `now`. URLs are compared without `www.`, fragment, trailing slash and `utm_*`.
@@ -151,7 +151,7 @@ classification without breadth data (A vs D is ambiguous without per-domain seri
   Total audience. `columns_matched` records which header matched each field; please send real exports so the
   alias list can be confirmed.
 - Organic analytics lag about 48 h (PA-08, community-sourced): `provisional_days` defaults to 2.
-- Pre-flight thresholds (25/day, 7-day URL spacing, keyword repetition, shortener list) are PinPulse heuristics;
+- Pre-flight thresholds (25/day, 7-day URL spacing, keyword repetition, shortener list) are PinInova heuristics;
   `policy_ref` says so. The `#ad` and bulk-day rules are hypotheses from community reports.
 - Weather inputs are voluntary user reports only (PA-06); `base_rate` 0.0017 is a placeholder (3% of accounts cliff
   per quarter, 5-day window) to be re-estimated from reports.

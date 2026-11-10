@@ -3,7 +3,7 @@ import "./globals.css";
 import { LegalFooter } from "@/components/Legal";
 
 export const metadata: Metadata = {
-  title: { default: "PinPulse", template: "%s · PinPulse" },
+  title: { default: "PinInova", template: "%s · PinInova" },
   description: "Pinterest account health, diagnosis and protection. Not affiliated with Pinterest.",
 };
 

@@ -1,4 +1,4 @@
-# PinPulse app image: Next.js web, pg-boss worker, SQL migrations, and (staging in mock mode only) the MOCK
+# PinInova app image: Next.js web, pg-boss worker, SQL migrations, and (staging in mock mode only) the MOCK
 # Pinterest server, all from one pnpm workspace install. Headless Chromium is included for report PDFs.
 # Build from the repo root:  docker build -f infra/app.Dockerfile -t pinpulse-app .
 #

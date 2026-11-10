@@ -76,7 +76,7 @@ Grey cloud matters: Caddy obtains the TLS certificates itself, and the app trust
 1. resend.com → **Domains → Add domain** `<domain>` (region us-east-1) → add the shown SPF (MX + TXT) and DKIM (TXT)
    records in Cloudflare (DNS only) → **Verify**. Add a DMARC record if Resend suggests it.
 2. **API Keys → Create**: permission **Sending access**, domain `<domain>` only → `RESEND_API_KEY` (`re_...`).
-3. `EMAIL_FROM="PinPulse <noreply@<domain>>"`.
+3. `EMAIL_FROM="PinInova <noreply@<domain>>"`.
 
 ## 6. Sentry and Better Stack
 1. sentry.io → **Create project**, platform **Next.js**, name `pinpulse-staging` → copy the **DSN** → `SENTRY_DSN`.
@@ -90,7 +90,7 @@ Grey cloud matters: Caddy obtains the TLS certificates itself, and the app trust
 
 ## 7. Pinterest developer app (used at Step 4, created now)
 1. Pinterest **business** account → developers.pinterest.com → **My apps → Connect app**. App description: what
-   PinPulse does, read-only; privacy policy URL `https://staging.<domain>/privacy` (production domain later).
+   PinInova does, read-only; privacy policy URL `https://staging.<domain>/privacy` (production domain later).
 2. **Redirect URI**: `https://staging.<domain>/api/pinterest/callback` (exact, no trailing slash).
 3. Scopes requested by the app: `user_accounts:read`, `pins:read`, `boards:read` only (the app refuses write scopes).
 4. Save the **App ID** and **App secret** in your password manager. **Do not paste them on the server yet**: staging

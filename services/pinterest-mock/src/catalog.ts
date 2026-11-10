@@ -111,7 +111,7 @@ export interface AccountDomain {
 export interface AccountDef {
   username: string;
   scenario: ScenarioId;
-  /** Cause letter from the PinPulse cause taxonomy, if any. */
+  /** Cause letter from the PinInova cause taxonomy, if any. */
   cause: "A" | "B" | "C" | "D" | "E" | null;
   summary: string;
   businessName: string;

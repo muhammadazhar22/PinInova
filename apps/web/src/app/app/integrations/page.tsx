@@ -22,7 +22,7 @@ export default function IntegrationsPage() {
           {rows.map(([n, s, t, b]) => <tr key={n}><td className="font-medium">{n}</td><td><Chip tone={t}>{s}</Chip></td><td className="text-sm">{b}</td></tr>)}
         </tbody></table>
       </Card>
-      <p className="muted text-xs">PinPulse is not affiliated with, endorsed by, or approved by Pinterest.</p>
+      <p className="muted text-xs">PinInova is not affiliated with, endorsed by, or approved by Pinterest.</p>
     </div>
   );
 }

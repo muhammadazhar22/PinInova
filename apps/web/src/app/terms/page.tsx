@@ -11,20 +11,20 @@ export default function Terms() {
   return (
     <LegalDoc title="Terms of service">
       <Section title="Agreement">
-        <p>These terms are an agreement between you and {f.operator} for the use of PinPulse. By creating an account you accept them. If you use PinPulse for a business or for clients, you accept them on behalf of that business.</p>
+        <p>These terms are an agreement between you and {f.operator} for the use of PinInova. By creating an account you accept them. If you use PinInova for a business or for clients, you accept them on behalf of that business.</p>
       </Section>
 
-      <Section title="What PinPulse does">
-        <p>PinPulse reads analytics for Pinterest accounts you connect, checks the pages your Pins link to, and gives you diagnoses, alerts and reports. A diagnosis is a likely explanation based on your own account&rsquo;s data, shown with its evidence and a confidence level. It is not a statement from Pinterest, and PinPulse cannot change how Pinterest distributes your content. We make no promise about reach, traffic, revenue or the outcome of any appeal.</p>
-        <p>PinPulse is not affiliated with, endorsed by, or approved by Pinterest. Your use of Pinterest remains subject to Pinterest&rsquo;s own terms.</p>
+      <Section title="What PinInova does">
+        <p>PinInova reads analytics for Pinterest accounts you connect, checks the pages your Pins link to, and gives you diagnoses, alerts and reports. A diagnosis is a likely explanation based on your own account&rsquo;s data, shown with its evidence and a confidence level. It is not a statement from Pinterest, and PinInova cannot change how Pinterest distributes your content. We make no promise about reach, traffic, revenue or the outcome of any appeal.</p>
+        <p>PinInova is not affiliated with, endorsed by, or approved by Pinterest. Your use of Pinterest remains subject to Pinterest&rsquo;s own terms.</p>
       </Section>
 
       <Section title="Your account and connected accounts">
-        <p>Keep your sign-in details secure; you are responsible for activity in your account. Connect only Pinterest accounts you own or are authorized to manage. To monitor a client&rsquo;s account, use PinPulse&rsquo;s client consent link, so that the client authorizes access themselves.</p>
+        <p>Keep your sign-in details secure; you are responsible for activity in your account. Connect only Pinterest accounts you own or are authorized to manage. To monitor a client&rsquo;s account, use PinInova&rsquo;s client consent link, so that the client authorizes access themselves.</p>
       </Section>
 
       <Section title="Acceptable use">
-        <p>Do not misuse PinPulse: no attempts to access other customers&rsquo; data, to probe or overload the service, to resell access without our agreement, or to use it to break the law or Pinterest&rsquo;s terms.</p>
+        <p>Do not misuse PinInova: no attempts to access other customers&rsquo; data, to probe or overload the service, to resell access without our agreement, or to use it to break the law or Pinterest&rsquo;s terms.</p>
       </Section>
 
       <Section title="Plans, payment and cancellation">
@@ -37,15 +37,15 @@ export default function Terms() {
       </Section>
 
       <Section title="Availability and changes">
-        <p>PinPulse depends on Pinterest&rsquo;s API, which Pinterest can change or restrict. We may change or discontinue features; if we discontinue the paid service we will refund any prepaid period not yet used.</p>
+        <p>PinInova depends on Pinterest&rsquo;s API, which Pinterest can change or restrict. We may change or discontinue features; if we discontinue the paid service we will refund any prepaid period not yet used.</p>
       </Section>
 
       <Section title="Disclaimers and liability">
-        <p>PinPulse is provided &ldquo;as is&rdquo;. To the extent the law allows, we are not liable for indirect or consequential losses, lost profits or lost revenue, and our total liability is limited to the amount you paid us in the 12 months before the claim. Nothing in these terms limits liability that cannot be limited by law.</p>
+        <p>PinInova is provided &ldquo;as is&rdquo;. To the extent the law allows, we are not liable for indirect or consequential losses, lost profits or lost revenue, and our total liability is limited to the amount you paid us in the 12 months before the claim. Nothing in these terms limits liability that cannot be limited by law.</p>
       </Section>
 
       <Section title="Ending the agreement">
-        <p>You can stop using PinPulse and delete your account at any time. We may suspend or close accounts that break these terms, with notice where reasonable.</p>
+        <p>You can stop using PinInova and delete your account at any time. We may suspend or close accounts that break these terms, with notice where reasonable.</p>
       </Section>
 
       <Section title="Law and contact">

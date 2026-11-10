@@ -1,5 +1,5 @@
 /**
- * PinPulse worker: one process running all background jobs on pg-boss.
+ * PinInova worker: one process running all background jobs on pg-boss.
  * Job payloads carry identifiers only (no tokens, no metrics).
  */
 import * as Sentry from "@sentry/node";

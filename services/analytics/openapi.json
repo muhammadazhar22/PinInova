@@ -1495,7 +1495,7 @@
     }
   },
   "info": {
-    "description": "Stateless detection and diagnosis engine for PinPulse. One tenant per request; nothing is stored; no Pinterest calls.",
+    "description": "Stateless detection and diagnosis engine for PinInova. One tenant per request; nothing is stored; no Pinterest calls.",
     "title": "pinpulse-analytics",
     "version": "1.0.0"
   },

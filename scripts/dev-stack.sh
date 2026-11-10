@@ -29,5 +29,5 @@ if [ "${1:-}" = "--prod" ]; then pnpm build >"$LOG/build.log" 2>&1; ( pnpm start
 for url in http://127.0.0.1:4010/__mock/state http://127.0.0.1:8000/healthz http://localhost:3000/api/health; do
   for _ in $(seq 1 120); do curl -fsS -o /dev/null "$url" 2>/dev/null && break; sleep 1; done
 done
-echo "PinPulse (MOCK Pinterest) at http://localhost:3000 — logs in $LOG. Ctrl-C to stop."
+echo "PinInova (MOCK Pinterest) at http://localhost:3000 — logs in $LOG. Ctrl-C to stop."
 if [ -n "${STACK_THEN:-}" ]; then eval "$STACK_THEN"; else wait; fi

@@ -1,6 +1,9 @@
-# PinPulse — agent operating rules
+# PinInova — agent operating rules
 
-PinPulse is a Pinterest account health, diagnosis and protection SaaS. One founder, many agents.
+PinInova is a Pinterest account health, diagnosis and protection SaaS. One founder, many agents.
+Formerly named PinPulse: user-facing text says PinInova, but internal identifiers keep the old name on purpose
+(`pinpulse_app` DB role, `pinpulse_analytics` package, `pinpulse-app` images, staging resource names); research notes,
+reviews and merged migrations are historical and still say PinPulse. Do not rename those without asking.
 Start with `README.md`, `docs/DEPLOYMENT.md` (current next steps) and `docs/PLAN.md`. Spec IDs (e.g. `SPEC-012`) refer to PLAN.md; `specs/` holds the template.
 
 ## Repo map

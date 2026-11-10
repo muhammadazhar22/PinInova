@@ -8,7 +8,7 @@ export function bareHost(hostname: string): string {
 }
 
 /**
- * Addresses PinPulse must never fetch on a user's behalf. Allow-list, not deny-list: only global unicast passes.
+ * Addresses PinInova must never fetch on a user's behalf. Allow-list, not deny-list: only global unicast passes.
  * IPv4-mapped (::ffff:a.b.c.d, incl. the hex form ::ffff:7f00:1) is judged as the IPv4 address it carries;
  * IPv4-compatible (::a.b.c.d), NAT64 (64:ff9b::/96), 6to4 (2002::/16), Teredo, site-local (fec0::/10),
  * unique-local, link-local, multicast and every other special range are refused. Unparseable → refused.

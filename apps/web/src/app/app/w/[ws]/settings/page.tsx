@@ -20,7 +20,7 @@ export default async function SettingsPage({ params }: { params: Promise<{ ws: s
         </Card>
         <Card title="Your data">
           <ul className="space-y-1 text-sm">
-            <li>Daily numbers are kept for {e.RETENTION_RAW_DAYS} days; PinPulse's own analysis for {e.RETENTION_DERIVED_DAYS} days.</li>
+            <li>Daily numbers are kept for {e.RETENTION_RAW_DAYS} days; PinInova's own analysis for {e.RETENTION_DERIVED_DAYS} days.</li>
             <li>Pin titles, descriptions and images are never stored.</li>
             <li>Disconnecting an account deletes its data within 24 hours.</li>
           </ul>

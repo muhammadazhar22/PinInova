@@ -68,7 +68,7 @@ test("VA signs up, connects a mock account, sees the diagnosis, reports, invites
   const client = await context.browser()!.newContext({ launchOptions: undefined } as never);
   const cp = await client.newPage();
   await cp.goto(consentUrl);
-  await expect(cp.getByText(/read-only|PinPulse can see|What PinPulse/i).first()).toBeVisible();
+  await expect(cp.getByText(/read-only|PinInova can see|What PinInova/i).first()).toBeVisible();
   await cp.getByRole("checkbox").first().check().catch(() => undefined);
   await cp.getByRole("button", { name: /Connect|Authorize|Continue/i }).first().click();
   await cp.locator('input[name="username"][value="mock_agency_client_1"]').check();

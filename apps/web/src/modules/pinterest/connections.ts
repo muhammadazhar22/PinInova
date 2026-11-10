@@ -66,7 +66,7 @@ export async function completeConnect(p: { state: string; nonce: string | null |
   if (!st) throw new ConnectError("state_invalid", "This connection link has expired. Please start again.");
   // The round trip must finish in the browser that started it, and the owner flow must finish as the same user.
   if (!p.nonce || !st.nonce_hash || !safeEqual(hashToken(p.nonce), st.nonce_hash)) {
-    throw new ConnectError("wrong_browser", "This connection was started in a different browser. Please start again from PinPulse.");
+    throw new ConnectError("wrong_browser", "This connection was started in a different browser. Please start again from PinInova.");
   }
   if (st.user_id && st.user_id !== p.sessionUserId) {
     throw new ConnectError("wrong_browser", "Please sign in as the person who started this connection and try again.");
@@ -87,7 +87,7 @@ export async function completeConnect(p: { state: string; nonce: string | null |
   const pinterestUserId = account.id ?? account.username ?? "unknown";
   const scopes = (tokens.scope ?? env().PINTEREST_SCOPES).split(/[ ,]+/).filter(Boolean);
   if (scopes.some((s) => /:write/.test(s))) {
-    // Defence in depth: PinPulse is read-only. Refuse to store tokens with write scopes.
+    // Defence in depth: PinInova is read-only. Refuse to store tokens with write scopes.
     throw new ConnectError("exchange_failed", "Unexpected write scope granted; refusing to store this token.");
   }
 

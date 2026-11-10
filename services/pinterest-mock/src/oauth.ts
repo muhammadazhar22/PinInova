@@ -196,7 +196,7 @@ button{font-size:16px;padding:8px 18px;margin-right:10px}
 code{background:#f4f4f4;padding:1px 4px}
 </style></head>
 <body>
-<div class="banner">MOCK Pinterest — not the real Pinterest. This page is served by services/pinterest-mock for PinPulse development. All accounts and data are synthetic.</div>
+<div class="banner">MOCK Pinterest — not the real Pinterest. This page is served by services/pinterest-mock for PinInova development. All accounts and data are synthetic.</div>
 <h1>MOCK Pinterest — not the real Pinterest</h1>
 <p>App <code>${esc(p.clientId)}</code> is requesting access to a <b>mock</b> account.</p>
 <h2>Requested scopes</h2>

@@ -10,7 +10,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <MockBanner mode={env().PINTEREST_MODE} />
       <header className="border-b border-stone-200 bg-white/80 backdrop-blur">
         <nav className="mx-auto flex max-w-6xl items-center gap-5 px-4 py-3 text-sm" aria-label="Main">
-          <Link href="/app" className="font-semibold text-brand-700">PinPulse</Link>
+          <Link href="/app" className="font-semibold text-brand-700">PinInova</Link>
           <Link href="/app" className="hover:underline">Workspaces</Link>
           <Link href="/weather" className="hover:underline">Weather</Link>
           <Link href="/app/billing" className="hover:underline">Plan</Link>

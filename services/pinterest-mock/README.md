@@ -49,6 +49,7 @@ Web app config (`apps/web/src/env.ts`): `PINTEREST_MODE=mock`, `PINTEREST_API_BA
 | `MOCK_RATE_ANALYTICS_PER_MIN` | 60 | `org_analytics` limit per token |
 | `MOCK_RATE_READ_PER_MIN` | 1000 | `org_read` limit per token |
 | `MOCK_FAULT_RATE` | 0 | probability (0..1) of an injected 500/503 |
+| `MOCK_STATE_FILE` | unset (memory only) | JSON file that keeps issued tokens and revocations across restarts; `scripts/dev-stack.sh` sets `.dev/mock-oauth.json` |
 | `MOCK_AUTO_CONSENT` | false | skip the consent page (user `mock_healthy`) |
 | `MOCK_SEED` | 1 | dataset seed |
 | `MOCK_SITE_BASE` | `http://127.0.0.1:${MOCK_SITE_PORT}` | base URL used in Pin links and websites |

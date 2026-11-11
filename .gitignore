@@ -12,3 +12,5 @@ next-env.d.ts
 test-results
 playwright-report
 *.egg-info
+# Local dev state (mock Pinterest logins, scripts/dev-stack.sh)
+.dev/

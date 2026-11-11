@@ -14,6 +14,8 @@ export interface MockServerOptions {
   /** 0..1 probability of injecting a 500/503 on /v5 API calls (token endpoint excluded). */
   faultRate?: number;
   autoConsent?: boolean;
+  /** File that keeps issued tokens across restarts (env MOCK_STATE_FILE). Unset = in memory only. */
+  stateFile?: string;
   seed?: number;
   /** Base URL of the mock websites server, used inside Pin links. */
   siteBase?: string;
@@ -47,6 +49,7 @@ export interface ResolvedConfig {
   rateReadPerMin: number;
   faultRate: number;
   autoConsent: boolean;
+  stateFile: string | null;
   seed: number;
   siteBase: string;
   apiBase: string | null;
@@ -94,6 +97,7 @@ export function resolveServerConfig(o: MockServerOptions = {}): ResolvedConfig {
     rateReadPerMin: o.rateReadPerMin ?? envNum("MOCK_RATE_READ_PER_MIN", 1000),
     faultRate,
     autoConsent: o.autoConsent ?? envBool("MOCK_AUTO_CONSENT", false),
+    stateFile: o.stateFile ?? (process.env.MOCK_STATE_FILE || null),
     seed: o.seed ?? envNum("MOCK_SEED", 1),
     siteBase: stripSlash(o.siteBase ?? process.env.MOCK_SITE_BASE ?? `http://127.0.0.1:${sitePort}`),
     apiBase: o.apiBase ? stripSlash(o.apiBase) : process.env.MOCK_API_BASE ? stripSlash(process.env.MOCK_API_BASE) : null,

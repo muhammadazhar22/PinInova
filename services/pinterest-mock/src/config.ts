@@ -106,3 +106,12 @@ export function resolveServerConfig(o: MockServerOptions = {}): ResolvedConfig {
 function stripSlash(s: string): string {
   return s.replace(/\/+$/, "");
 }
+
+/**
+ * Base URL a client can actually connect to for a server bound to `host`. Wildcard binds ("::", "0.0.0.0") are not
+ * connectable addresses, so they advertise 127.0.0.1 (SPEC-078).
+ */
+export function connectableBase(host: string, port: number): string {
+  const h = host === "::" || host === "0.0.0.0" || host === "" ? "127.0.0.1" : host;
+  return `http://${h.includes(":") ? `[${h}]` : h}:${port}`;
+}

@@ -6,7 +6,7 @@
 import { createServer, type ServerResponse } from "node:http";
 import type { AddressInfo } from "node:net";
 import { SITES, SITE_BY_SLUG } from "./catalog.ts";
-import { resolveSitePort, type MockSitesOptions } from "./config.ts";
+import { connectableBase, resolveSitePort, type MockSitesOptions } from "./config.ts";
 import { titleFromPathSegment } from "./data.ts";
 import type { RunningMock } from "./server.ts";
 
@@ -155,7 +155,7 @@ export async function createMockSites(options: MockSitesOptions = {}): Promise<R
     server.listen(port, host, () => resolve());
   });
   const actualPort = (server.address() as AddressInfo).port;
-  base = `http://${host.includes(":") ? `[${host}]` : host}:${actualPort}`;
+  base = connectableBase(host, actualPort);
   return {
     url: base,
     port: actualPort,

@@ -34,6 +34,10 @@ problems, each worked around by hand in `.env.local`:
 - [x] README has a "Windows (WSL2)" section: ports (with the `netsh.exe` command to list reserved ranges),
       localhost/IPv6, installing Chrome in WSL, the `NODE_OPTIONS` workaround for npm timeouts, `--prod` when `next dev`
       keeps reloading, and editing `.env.local` in place instead of appending.
+- [x] Follow-up: with `MOCK_HOST=::` the mock advertised `http://[::]:4410` in image URLs, so the web app's image
+      fetch (allowed only from the `PINTEREST_API_BASE` host) rejected every Pin image and duplicate-image detection found
+      nothing (`mock_new_pins_zero` scored content integrity 100). Wildcard binds (`::`, `0.0.0.0`) now advertise
+      `http://127.0.0.1:<port>` for the API and the mock websites. Test: `services/pinterest-mock/test/listen-host.test.ts`.
 - [x] Gate: web typecheck + unit/RLS tests, `scripts/test-e2e.sh`, `scripts/test-browser.sh`.
 
 ## Out of scope

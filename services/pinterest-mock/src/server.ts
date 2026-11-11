@@ -5,7 +5,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import type { AddressInfo } from "node:net";
 import { ACCOUNT_BY_USERNAME, ACCOUNTS, DEFAULT_AUTO_CONSENT_USER, SITE_BY_SLUG } from "./catalog.ts";
-import { resolveServerConfig, type MockServerOptions, type ResolvedConfig } from "./config.ts";
+import { connectableBase, resolveServerConfig, type MockServerOptions, type ResolvedConfig } from "./config.ts";
 import { HISTORY_DAYS, N_BASE, getDataset, type AccountData, type Dataset, type PinRec } from "./data.ts";
 import { DAY_MS, formatDay, parseIsoDate, todayUtcDayNumber } from "./dates.ts";
 import {
@@ -806,7 +806,7 @@ export async function createMockServer(options: MockServerOptions = {}): Promise
     server.listen(cfg.port, cfg.host, () => resolve());
   });
   const port = (server.address() as AddressInfo).port;
-  const url = `http://${cfg.host.includes(":") ? `[${cfg.host}]` : cfg.host}:${port}`;
+  const url = connectableBase(cfg.host, port);
   if (!apiBase) apiBase = url;
   return {
     url,

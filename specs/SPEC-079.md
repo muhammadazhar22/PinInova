@@ -36,10 +36,13 @@ though my account total looks normal, with the numbers and the likely reasons, b
 - [ ] Mock calibration (11 Nov 2026, new ÷ older median): new_pins_zero 0.05; domain_block 1.6, platform_cliff 1.4,
       quality_drop 0.99, viral_fade 0.97. No false positive on the five connected mock accounts.
 
+- [x] Follow-up (founder request, 11 Nov 2026): `NEW_PINS_ALERTS` (default **false**). When true, alert evaluation
+      sends one in-app alert and one e-mail per open `distribution:new_pins` issue (tier `new_pins`; no Slack), with
+      likely-cause wording. Test: `src/modules/alerts/new-pins-alerts.test.ts` (off by default, on, no duplicates).
+
 ## Out of scope
-Changing the detector (`detectors.py`), the benchmark or the health-score formula. Alerts (Slack/e-mail) for this
-issue: the issue shows on the account page and in reports' open checks; alerting is a follow-up once precision is
-known on real accounts.
+Changing the detector (`detectors.py`), the benchmark or the health-score formula. Turning `NEW_PINS_ALERTS` on by
+default: wait until beta labels show the warning is accurate on real accounts.
 
 ## Data & policy
 Uses `pin_meta.pin_created_at` and `pin_metrics_daily` already stored for this connection (PA-01/PA-02). No new

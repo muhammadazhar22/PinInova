@@ -8,9 +8,9 @@ import { CAUSE_LABELS, type DiagnoseResponse } from "@/modules/health/analytics-
 import { escapeHtml as h } from "@/modules/notify/email";
 import { lineChartSvg } from "./svg";
 
-const CSS = `body{font-family:Inter,system-ui,sans-serif;color:#111827;margin:32px;font-size:13px;line-height:1.5}
+export const REPORT_CSS = `body{font-family:Inter,system-ui,sans-serif;color:#111827;margin:32px;font-size:13px;line-height:1.5}
 h1{font-size:22px;margin:0 0 4px}h2{font-size:15px;margin:24px 0 8px;border-bottom:1px solid #e5e7eb;padding-bottom:4px}
-.muted{color:#6b7280}.k{display:inline-block;margin-right:24px}.k b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
+.muted{color:#6b7280}.k{display:inline-block;vertical-align:top;margin-right:24px}.k b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
 table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}td,th{border-bottom:1px solid #f3f4f6;padding:4px 6px;text-align:left;vertical-align:top}
 .chip{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;border:1px solid #d1d5db}.foot{margin-top:32px;font-size:11px;color:#6b7280}
 pre{white-space:pre-wrap;background:#f9fafb;border:1px solid #e5e7eb;padding:12px;font-size:12px}`;
@@ -81,7 +81,7 @@ export async function buildMonthlyReport(workspaceId: string, orgId: string, con
           .join(" ")
       : "No reach drops were detected this period.";
 
-    const html = `<!doctype html><html><head><meta charset="utf-8"><title>${h(ws?.name ?? "")} · Pinterest report</title><style>${CSS}</style></head><body>
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>${h(ws?.name ?? "")} · Pinterest report</title><style>${REPORT_CSS}</style></head><body>
 <h1 style="color:${brand.color}">Pinterest account report · @${h(conn.username)}</h1>
 <div class="muted">${h(ws?.name ?? "")} · ${start} to ${end}${env().PINTEREST_MODE === "mock" ? " · <b>SIMULATED DATA (mock Pinterest API)</b>" : ""}</div>
 <h2>Summary</h2><p>${h(summary)}</p>
@@ -139,7 +139,7 @@ export async function buildEvidencePack(workspaceId: string, orgId: string, inci
       "Request: could you confirm whether the account, any linked domain, or recent Pins are subject to limited distribution, and if so which policy applies?",
     ].filter(Boolean).join("\n");
 
-    const html = `<!doctype html><html><head><meta charset="utf-8"><title>Evidence pack · @${h(conn.username)}</title><style>${CSS}</style></head><body>
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>Evidence pack · @${h(conn.username)}</title><style>${REPORT_CSS}</style></head><body>
 <h1 style="color:${brand.color}">Evidence pack · @${h(conn.username)}</h1><div class="muted">Drop onset ${h(onset)} · generated ${new Date().toISOString().slice(0, 10)}${env().PINTEREST_MODE === "mock" ? " · <b>SIMULATED DATA (mock Pinterest API)</b>" : ""}</div>
 <h2>Timeline</h2>${lineChartSvg({ dates: s.dates, series: [{ name: "Impressions", values: s.impressions, color: brand.color }, { name: "Outbound clicks ×20", values: s.clicks.map((c) => c * 20), color: "#9ca3af" }], markers: [{ date: onset, label: "onset" }] })}
 <h2>Findings</h2><table><tr><th>Finding</th><th>Supports</th></tr>${r.evidence.map((e) => `<tr><td>${h(e.text)}</td><td>${e.supports.map((c) => h(CAUSE_LABELS[c as keyof typeof CAUSE_LABELS]?.title ?? c)).join(", ")}</td></tr>`).join("")}</table>

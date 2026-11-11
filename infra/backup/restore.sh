@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Restore drill / disaster recovery (SPEC-074) — ON HOLD with backup.sh; see docs/runbooks/backup-restore.md.
+# Restore drill / disaster recovery (SPEC-074); see docs/runbooks/backup-restore.md. Backups hold no Pinterest data
+# (pinterest-data-tables.txt): those tables come back empty and the nightly sync re-fetches them.
 #   infra/backup/restore.sh <name|latest> <TARGET_OWNER_URL> <TARGET_APP_URL>
 # 1. fetch <name>.dump.enc + <name>.json from BACKUP_DEST, verify sha256, decrypt with BACKUP_PASSPHRASE;
 # 2. pg_restore into an EMPTY target database (e.g. a fresh Neon branch/database), as its owner;
@@ -52,6 +53,10 @@ sys.exit(1 if diff else 0)
 PY
 
 # Purge needs no secrets (it deletes rows and clears sealed tokens); NODE_ENV=development skips the server-only guard.
-docker run --rm --network host -e NODE_ENV=development -e SOURCE_OWNER_URL="$LIVE" -e DATABASE_URL="$TARGET_APP" \
-  --entrypoint node_modules/.bin/tsx "$APP_IMAGE" scripts/reapply-purges.ts --since "$CREATED"
+if [ "$APP_IMAGE" = local ]; then  # tests on a dev machine: run from the repo instead of the app image
+  ( cd "$ROOT/../apps/web" && NODE_ENV=development SOURCE_OWNER_URL="$LIVE" DATABASE_URL="$TARGET_APP" pnpm exec tsx scripts/reapply-purges.ts --since "$CREATED" )
+else
+  docker run --rm --network host -e NODE_ENV=development -e SOURCE_OWNER_URL="$LIVE" -e DATABASE_URL="$TARGET_APP" \
+    --entrypoint node_modules/.bin/tsx "$APP_IMAGE" scripts/reapply-purges.ts --since "$CREATED"
+fi
 echo "restore of $WANT complete: counts match, later purges re-applied"

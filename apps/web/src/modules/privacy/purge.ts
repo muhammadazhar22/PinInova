@@ -3,7 +3,7 @@ import { env } from "@/env";
 import { audit } from "@/lib/audit";
 import { db, withWorkspace, one } from "@/lib/db";
 
-const TABLES = [
+export const PURGED_TABLES = [
   "account_metrics_daily", "pin_metrics_daily", "pin_meta", "alert", "incident", "issue", "check_result",
   "health_snapshot", "report", "traffic_leak_result", "pin_token", "order_attribution", "observed_signal", "email_outbox",
 ] as const;
@@ -18,7 +18,7 @@ export async function purgeConnection(workspaceId: string, connectionId: string)
     const [c] = await tx<{ status: string; pinterest_user_id: string }[]>`SELECT status, pinterest_user_id FROM pinterest_connection WHERE id = ${connectionId} FOR UPDATE`;
     if (!c) return;
     if (c.status === "active") throw new Error("refusing to purge an active connection; disconnect first");
-    for (const t of TABLES) {
+    for (const t of PURGED_TABLES) {
       if (t === "alert") {
         const r = await tx`DELETE FROM alert WHERE incident_id IN (SELECT id FROM incident WHERE connection_id = ${connectionId})
                                          OR issue_id IN (SELECT id FROM issue WHERE connection_id = ${connectionId})`;

@@ -40,6 +40,9 @@ export function robotsUrlFor(link: string, mode: "mock" | "live"): { url: string
  * Link and domain integrity for ONE tenant's own Pin links (policy: PA-07). The allowlist is
  * implicit: only URLs taken from this account's own Pins are ever fetched.
  */
+/** Issue kinds under this module's prefixes that analysis owns; link checks never close them. */
+const ANALYSIS_OWNED_KINDS = ["domain:traffic_drop"];
+
 export async function runIntegrityChecks(workspaceId: string, connectionId: string, opts: { client?: PinterestClient; pins?: Pin[] } = {}) {
   const e = env();
   const pins: Pin[] = opts.pins ?? [];
@@ -134,7 +137,9 @@ export async function runIntegrityChecks(workspaceId: string, connectionId: stri
       await issue("content:duplicate_images", "warning", `${inClusters.length} recent Pins reuse the same image (${dup.clusters.length} groups)`, { clusters: dup.clusters, duplicate_rate: dup.duplicate_rate }, inClusters.length);
     }
     await closeIssuesNotIn(tx, connectionId, "link:", open);
-    await closeIssuesNotIn(tx, connectionId, "domain:", open);
+    // domain:traffic_drop is raised and closed by analysis (analyze.ts), not here: closing it would flip an open
+    // warning to resolved → regressed every night and mark a user's "I fixed this" as passed without a check.
+    await closeIssuesNotIn(tx, connectionId, "domain:", [...open, ...ANALYSIS_OWNED_KINDS]);
     if (dup) await closeIssuesNotIn(tx, connectionId, "content:", open);
   });
   return { runId, checked: results.length, domains: byDomain.size, duplicates: dup?.clusters.length ?? 0 };

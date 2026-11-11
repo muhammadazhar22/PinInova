@@ -36,3 +36,24 @@ describe("integrity checks", () => {
     expect(c!.status).toBe("needs_reauth");
   });
 });
+
+describe("issue ownership", () => {
+  it("link checks leave the analysis-owned domain:traffic_drop issue alone (open stays open, validating is not 'passed')", async () => {
+    const a = await makeOrgUser(own);
+    const w = await createWorkspace(a.userId, a.orgId, { name: "Ownership", kind: "own" });
+    const c = await withWorkspace(w, async (tx) => {
+      const [row] = await tx<{ id: string }[]>`INSERT INTO pinterest_connection (workspace_id, mode, pinterest_user_id, username, scopes)
+        VALUES (${w}, 'mock', 'pu_own', 'owner_test', ${["pins:read"]}) RETURNING id`;
+      await tx`INSERT INTO issue (workspace_id, connection_id, kind, source, severity, title, detail) VALUES
+        (${w}, ${row!.id}, 'domain:traffic_drop', 'unknown', 'warning', 'Pins linking to deal-hub lost 95%', '{}'),
+        (${w}, ${row!.id}, 'domain:crawl_delay', 'you', 'warning', 'Crawl-delay above 1 second', '{}')`;
+      await tx`UPDATE issue SET state = 'validating' WHERE connection_id = ${row!.id} AND kind = 'domain:traffic_drop'`;
+      return row!.id;
+    });
+    const unused = (async () => { throw new Error("no API call expected"); }) as typeof fetch;
+    await runIntegrityChecks(w, c, { client: new PinterestClient({ baseUrl: "http://pinterest.test/v5", accessToken: "t", fetchImpl: unused }), pins: [] });
+    const rows = await withWorkspace(w, (tx) => tx<{ kind: string; state: string }[]>`SELECT kind, state FROM issue WHERE connection_id = ${c} ORDER BY kind`);
+    // crawl_delay is the link checks' own issue and no longer found: resolved. traffic_drop belongs to analysis: untouched.
+    expect(rows).toEqual([{ kind: "domain:crawl_delay", state: "resolved" }, { kind: "domain:traffic_drop", state: "validating" }]);
+  });
+});

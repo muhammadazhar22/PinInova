@@ -1,0 +1,17 @@
+# Tables whose DATA backups leave out (SPEC-074, owner decision 11 Nov 2026: option A). Same list as the disconnect
+# purge (apps/web/src/modules/privacy/purge.ts PURGED_TABLES); a unit test fails if the two drift apart.
+# Partitioned tables include their monthly partitions (<name>_YYYYMM).
+account_metrics_daily
+pin_metrics_daily
+pin_meta
+alert
+incident
+issue
+check_result
+health_snapshot
+report
+traffic_leak_result
+pin_token
+order_attribution
+observed_signal
+email_outbox

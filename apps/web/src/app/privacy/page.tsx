@@ -42,6 +42,7 @@ export default function Privacy() {
       <Section title="Disconnecting deletes your data">
         <p>When you disconnect a Pinterest account (or a client revokes access), its access tokens are destroyed immediately and every row of Pinterest data and results for that account is permanently deleted within {f.purgeHours} hours. We keep only a deletion record (which connection, when, how many rows were removed) with no Pinterest data in it. A nightly check confirms nothing was left behind.</p>
         <p>If Pinterest access expires and is not renewed within {f.reauthGraceDays} days, we disconnect and delete the account&rsquo;s data the same way.</p>
+        <p>Backups: we keep encrypted nightly backups for 14 days so we can recover from a disaster. They contain no Pinterest analytics, Pins or results. They do contain account, workspace, billing and consent records and the list of connected Pinterest accounts (username and encrypted access token), so a disconnected account&rsquo;s username and encrypted token can remain in a backup until it expires after 14 days. If we ever restore a backup, every disconnection made after it is re-applied before the restored copy is used.</p>
       </Section>
 
       <Section title="Your rights">
@@ -49,7 +50,7 @@ export default function Privacy() {
       </Section>
 
       <Section title="Service providers">
-        <p>We use these processors, each only to run PinInova: Hetzner (servers, United States), Neon (database, United States), Resend (e-mail delivery), Sentry (error reports, with tokens, cookies, links and e-mail addresses removed before sending), Paddle (checkout, payments and invoicing as merchant of record), and Cloudflare (DNS). If you connect Slack, alerts are sent to the Slack webhook you provide.</p>
+        <p>We use these processors, each only to run PinInova: Hetzner (servers, United States), Neon (database, United States), Resend (e-mail delivery), Sentry (error reports, with tokens, cookies, links and e-mail addresses removed before sending), Paddle (checkout, payments and invoicing as merchant of record), and Cloudflare (DNS, and storage for the encrypted backups described above). If you connect Slack, alerts are sent to the Slack webhook you provide.</p>
       </Section>
 
       <Section title="Cookies">

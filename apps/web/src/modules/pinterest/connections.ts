@@ -3,7 +3,7 @@ import { audit } from "@/lib/audit";
 import { newDataKey, openSecret, sealSecret, unwrapDataKey } from "@/lib/crypto/vault";
 import { db, withWorkspace, type Tx, one } from "@/lib/db";
 import { hashToken, newToken, safeEqual } from "@/lib/tokens";
-import { entitlements } from "@/modules/billing/plans";
+import { entitlements, type Entitlements } from "@/modules/billing/plans";
 import { enqueue, QUEUES } from "@/modules/jobs/boss";
 import { PinterestClient } from "./client";
 import { CONSENT_TEXT_VERSION } from "./consent";
@@ -41,6 +41,25 @@ export async function startConnect(p: { workspaceId: string; userId: string | nu
   return { url: authorizeUrl(state), nonce };
 }
 
+/** A reconnect keeps the account count unchanged, so it fits unless the org is already over its limit (or has none). */
+function reconnectWithinLimit(ent: Entitlements) {
+  return ent.accountLimit > 0 && ent.activeAccounts <= ent.accountLimit;
+}
+
+/**
+ * May the Connect flow start? `reconnectId` = the Reconnect button of a connection flagged needs_reauth: allowed at the
+ * plan limit (SPEC-001), since completing it replaces that connection's tokens instead of adding an account.
+ */
+export async function connectAllowed(orgId: string, workspaceId: string, reconnectId?: string | null): Promise<{ ok: true } | { ok: false; message: string }> {
+  const ent = await entitlements(orgId);
+  if (ent.canConnect) return { ok: true };
+  if (reconnectId && /^[0-9a-f-]{36}$/i.test(reconnectId) && reconnectWithinLimit(ent)) {
+    const [c] = await withWorkspace(workspaceId, (tx) => tx<{ status: string }[]>`SELECT status FROM pinterest_connection WHERE id = ${reconnectId}`);
+    if (c?.status === "needs_reauth") return { ok: true };
+  }
+  return { ok: false, message: `Your plan allows ${ent.accountLimit} connected accounts.` };
+}
+
 export interface ConnectResult {
   workspaceId: string;
   connectionId: string;
@@ -74,8 +93,6 @@ export async function completeConnect(p: { state: string; nonce: string | null |
   if (p.error || !p.code) throw new ConnectError("denied", "Pinterest access was not granted.");
 
   const ent = await entitlements(orgId);
-  if (!ent.canConnect) throw new ConnectError("plan_limit", `Your plan allows ${ent.accountLimit} connected accounts.`);
-
   let tokens;
   try {
     tokens = await exchangeCode(p.code, p.fetchImpl);
@@ -89,6 +106,16 @@ export async function completeConnect(p: { state: string; nonce: string | null |
   if (scopes.some((s) => /:write/.test(s))) {
     // Defence in depth: PinInova is read-only. Refuse to store tokens with write scopes.
     throw new ConnectError("exchange_failed", "Unexpected write scope granted; refusing to store this token.");
+  }
+
+  // Plan limit (SPEC-001). Reconnecting an account this workspace already has (active or needs_reauth) does not add
+  // one — it is already counted — so it is allowed unless the org is over its limit; a new account needs a free slot.
+  // Checked after identifying the account; the tokens just obtained are discarded if refused (never stored).
+  const [already] = await withWorkspace(workspaceId, (tx) => tx<{ id: string }[]>`
+    SELECT id FROM pinterest_connection WHERE workspace_id = ${workspaceId} AND pinterest_user_id = ${pinterestUserId}
+    AND status IN ('active', 'needs_reauth')`);
+  if (already ? !reconnectWithinLimit(ent) : !ent.canConnect) {
+    throw new ConnectError("plan_limit", `Your plan allows ${ent.accountLimit} connected accounts.`);
   }
 
   return withWorkspace(workspaceId, async (tx) => {

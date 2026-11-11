@@ -32,7 +32,7 @@ export default async function AccountPage({ params }: { params: Promise<{ ws: st
             <form action={buildReportAction}>{hidden}<button className="btn-primary">Monthly report</button></form>
           </div>
         )}
-        {d.conn.status === "needs_reauth" && acc.canManage && <a className="btn-primary ml-auto" href={`/api/pinterest/connect?ws=${ws}`}>Reconnect</a>}
+        {d.conn.status === "needs_reauth" && acc.canManage && <a className="btn-primary ml-auto" href={`/api/pinterest/connect?ws=${ws}&reconnect=${d.conn.id}`}>Reconnect</a>}
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">

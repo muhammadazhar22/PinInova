@@ -4,6 +4,7 @@ import { lockConnection } from "@/modules/pinterest/guard";
 import { addDays, dateRange, daysBetween, todayUtc } from "@/lib/dates";
 import { analytics, CAUSE_LABELS, type DiagnoseRequest, type DiagnoseResponse } from "./analytics-client";
 import { computeHealth } from "./score";
+import { loadPinCohorts, NEW_PINS_ISSUE, newPinsFinding, newPinsIssueText } from "./new-pins";
 
 interface AccRow { date: string; impressions: bigint | null; outbound_clicks: bigint | null; saves: bigint | null; pin_clicks: bigint | null }
 
@@ -183,6 +184,15 @@ export async function analyzeAccount(workspaceId: string, connectionId: string, 
         { domains: domainDrops, basis: "tracked Pins only; the account as a whole did not cross the drop threshold" }, domainDrops.length);
     } else if (res.status !== "drop") {
       await closeIssuesNotIn(tx, connectionId, "domain:traffic_drop", []);
+    }
+    // New Pins not distributed while older Pins carry the account (SPEC-079): below the account-level drop threshold.
+    const cohorts = await loadPinCohorts(tx, connectionId, todayUtc(now), env().PROVISIONAL_DAYS);
+    const newPins = newPinsFinding(cohorts.newMeans, cohorts.olderMeans);
+    if (newPins) {
+      const t = newPinsIssueText(newPins);
+      await upsertIssue(tx, workspaceId, connectionId, NEW_PINS_ISSUE, "unknown", "warning", t.title, t.detail, newPins.newCount);
+    } else {
+      await closeIssuesNotIn(tx, connectionId, NEW_PINS_ISSUE, []);
     }
     const score = await computeHealth(tx, workspaceId, connectionId, res, todayUtc(now));
     return { result: res, incidentId, score };

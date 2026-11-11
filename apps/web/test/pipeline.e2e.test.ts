@@ -68,6 +68,7 @@ describe("scenario signatures", () => {
     expect(r.sync.accountRows).toBeGreaterThanOrEqual(80);
     expect(r.analysis.result?.status).not.toBe("drop");
     expect(r.analysis.score).toBeGreaterThan(50);
+    expect(r.issues.map((i) => i.kind)).not.toContain("distribution:new_pins"); // SPEC-079: no false positive
     const [row] = await withWorkspace(r.ws, (tx) => tx<{ access_token_ct: Buffer }[]>`SELECT access_token_ct FROM pinterest_connection WHERE id = ${r.conn}`);
     expect(row!.access_token_ct.toString("utf8")).not.toMatch(/^[a-z0-9_.-]{20,}$/i);
     const titles = await own`SELECT column_name FROM information_schema.columns WHERE table_name IN ('pin_meta','pin_metrics_daily','account_metrics_daily') AND column_name IN ('title','description','image','image_url')`;
@@ -97,10 +98,12 @@ describe("scenario signatures", () => {
     expect(d!.detail.domains.map((x) => x.domain).join()).not.toMatch(/cozy-kitchen|garden-notes/);
   });
 
-  it("new Pins at zero: behavioural cause and duplicate images detected", async () => {
+  it("new Pins at zero: new-Pin collapse and duplicate images detected", async () => {
     const r = await fullRun("mock_new_pins_zero");
     expect(r.integrity.duplicates).toBeGreaterThan(0);
     expect(r.issues.map((i) => i.kind)).toContain("content:duplicate_images");
+    // SPEC-079: the account total holds, so this comes from the new-vs-older Pin cohort check, not the detector.
+    expect(r.issues.filter((i) => i.state === "open").map((i) => i.kind)).toContain("distribution:new_pins");
   });
 });
 
@@ -116,6 +119,7 @@ describe("more scenario signatures", () => {
 
   it("viral fade: smooth decay of one viral Pin is not reported as a cliff and raises no alert", async () => {
     const r = await fullRun("mock_viral_fade");
+    expect(r.issues.map((i) => i.kind)).not.toContain("distribution:new_pins"); // SPEC-079: fading top Pin is not a new-Pin collapse
     const res = r.analysis.result!;
     if (res.status === "drop") expect(res.classes[0]!.cause).toBe("E_decay");
     else expect(r.alerts.created).toHaveLength(0);

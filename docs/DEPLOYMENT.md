@@ -38,7 +38,7 @@ If Pinterest's review runs past early January, only the last two rows move.
 - Found and fixed on 11 Nov while running the app locally on Windows/WSL: Windows reserved ports and IPv6 for the mock
   (SPEC-078), report PDF layout (SPEC-023), link checks not flagging re-authorization on a 401 (SPEC-020), reconnect
   blocked at the plan limit (SPEC-001), new-Pin collapse not reported (SPEC-079).
-- Known gap: `PLANS` lists 1,000 tracked Pins for Pro/Agency but `TRACKED_PINS_CAP` (300) caps every plan. Owner decision.
+- Tracked Pins: owner chose to deliver Pro/Agency's 1,000 (`TRACKED_PINS_CAP` default raised to 1,000, SPEC-080).
 - Owner items not started yet (Step 2): domain, Pinterest developer app, Paddle, Resend, hosting accounts. Drafts for
   the Pinterest submission, the agency DPA and the beta are in `docs/launch/`.
 

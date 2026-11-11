@@ -64,8 +64,15 @@ const schema = z.object({
 
   GA4_MODE: z.enum(["mock", "csv"]).default("csv"),
   SHOPIFY_MODE: z.enum(["mock", "csv"]).default("csv"),
-  BILLING_MODE: z.enum(["simulated", "paddle_sandbox"]).default("simulated"),
+  BILLING_MODE: z.enum(["simulated", "paddle_sandbox", "paddle_live"]).default("simulated"),
   PADDLE_WEBHOOK_SECRET: z.string().default("dev-paddle-webhook-secret"),
+  // Paddle checkout (SPEC-081): client-side token and catalogue price IDs (pri_…) from the Paddle dashboard.
+  PADDLE_CLIENT_TOKEN: z.string().optional(),
+  PADDLE_PRICE_SOLO: z.string().optional(),
+  PADDLE_PRICE_PRO: z.string().optional(),
+  PADDLE_PRICE_AGENCY: z.string().optional(),
+  PADDLE_PRICE_EXTRA_PRO: z.string().optional(),
+  PADDLE_PRICE_EXTRA_AGENCY: z.string().optional(),
 
   CHROME_PATH: z.string().default("/usr/bin/google-chrome"),
 
@@ -108,6 +115,12 @@ export function env(): Env {
       // Simulated billing lets any owner pick a plan: acceptable only for a mock demo, never with real accounts.
       if (parsed.data.PINTEREST_MODE === "live" && parsed.data.BILLING_MODE === "simulated") throw new Error("BILLING_MODE=simulated is refused when PINTEREST_MODE=live");
       if (parsed.data.BILLING_MODE !== "simulated" && parsed.data.PADDLE_WEBHOOK_SECRET.startsWith("dev-")) throw new Error("Set PADDLE_WEBHOOK_SECRET");
+      if (parsed.data.BILLING_MODE !== "simulated") {
+        const missing = (["PADDLE_CLIENT_TOKEN", "PADDLE_PRICE_SOLO", "PADDLE_PRICE_PRO", "PADDLE_PRICE_AGENCY", "PADDLE_PRICE_EXTRA_PRO", "PADDLE_PRICE_EXTRA_AGENCY"] as const).filter((k) => !parsed.data[k]);
+        if (missing.length) throw new Error(`Set ${missing.join(", ")} for Paddle billing`);
+      }
+      // A sandbox client token (test_…) with paddle_live means checkout and webhooks point at different Paddle environments.
+      if (parsed.data.BILLING_MODE === "paddle_live" && parsed.data.PADDLE_CLIENT_TOKEN?.startsWith("test_")) throw new Error("PADDLE_CLIENT_TOKEN is a sandbox token but BILLING_MODE=paddle_live");
     }
     cached = parsed.data;
   }

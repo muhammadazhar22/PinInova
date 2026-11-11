@@ -36,6 +36,8 @@ export interface Entitlements {
   slack: boolean;
   trackedPins: number;
   trialEndsAt: Date | null;
+  /** "paddle" once a Paddle subscription exists for the org (plan changes then go through Paddle); null otherwise. */
+  provider: string | null;
 }
 
 export async function ensureSubscription(orgId: string) {
@@ -46,15 +48,15 @@ export async function ensureSubscription(orgId: string) {
 export async function entitlements(orgId: string, tx?: Tx): Promise<Entitlements> {
   const sql = tx ?? db();
   await ensureSubscription(orgId);
-  const [s] = await sql<{ plan: Plan; status: string; extra_accounts: number; trial_ends_at: Date | null }[]>`
-    SELECT plan, status, extra_accounts, trial_ends_at FROM subscription WHERE org_id = ${orgId}`;
+  const [s] = await sql<{ plan: Plan; status: string; extra_accounts: number; trial_ends_at: Date | null; provider: string | null }[]>`
+    SELECT plan, status, extra_accounts, trial_ends_at, provider FROM subscription WHERE org_id = ${orgId}`;
   const { n } = await one(sql<{ n: number }[]>`SELECT system_org_active_accounts(${orgId}) AS n`);
   const plan = s!.plan;
   const trialExpired = plan === "trial" && s!.trial_ends_at !== null && s!.trial_ends_at < new Date();
   if (plan === "canceled" || trialExpired) {
-    return { plan, status: trialExpired ? "trial_expired" : s!.status, accountLimit: 0, activeAccounts: n, canConnect: false, whiteLabel: false, slack: false, trackedPins: 50, trialEndsAt: s!.trial_ends_at };
+    return { plan, status: trialExpired ? "trial_expired" : s!.status, accountLimit: 0, activeAccounts: n, canConnect: false, whiteLabel: false, slack: false, trackedPins: 50, trialEndsAt: s!.trial_ends_at, provider: s!.provider ?? null };
   }
   const p = PLANS[plan];
   const limit = p.accounts + (s!.extra_accounts ?? 0);
-  return { plan, status: s!.status, accountLimit: limit, activeAccounts: n, canConnect: n < limit, whiteLabel: p.whiteLabel, slack: p.slack, trackedPins: p.trackedPins, trialEndsAt: s!.trial_ends_at };
+  return { plan, status: s!.status, accountLimit: limit, activeAccounts: n, canConnect: n < limit, whiteLabel: p.whiteLabel, slack: p.slack, trackedPins: p.trackedPins, trialEndsAt: s!.trial_ends_at, provider: s!.provider ?? null };
 }

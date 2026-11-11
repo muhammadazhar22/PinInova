@@ -101,16 +101,20 @@ At Step 4 the `.env` changes are: `PINTEREST_MODE=live`, `PINTEREST_CLIENT_ID=<A
 `PINTEREST_OAUTH_BASE=https://www.pinterest.com/oauth/`, `INTEGRITY_ALLOW_PRIVATE_HOSTS=false`, remove `MOCK_OAUTH_HOST`
 (and its DNS records), then redeploy. **Blocker to know about now:** the app refuses `PINTEREST_MODE=live` with
 `BILLING_MODE=simulated` (security review finding 7), so Step 4 also needs the Paddle sandbox (step 8 + the billing PR
-that is on hold).
+(SPEC-081)).
 
-## 8. Paddle sandbox (used when the billing work resumes)
+## 8. Paddle sandbox
 1. sandbox-vendors.paddle.com → sign up (separate from the live account).
-2. **Developer tools → Authentication → API keys → New key** → keep as `PADDLE_API_KEY` (not used by the code yet;
-   the checkout item is on hold).
+2. **Developer tools → Authentication → Client-side tokens → New token** → `PADDLE_CLIENT_TOKEN` (starts with `test_`
+   in the sandbox). Also set the **default payment link** (Checkout → Checkout settings) to
+   `https://staging.<domain>/app/billing`; Paddle requires one before overlay checkout works.
 3. **Developer tools → Notifications → New destination**: URL `https://staging.<domain>/api/webhooks/paddle`, events
    `subscription.created`, `subscription.updated`, `subscription.canceled` (what `src/modules/billing/paddle.ts` handles) → copy the **secret key** → `PADDLE_WEBHOOK_SECRET`.
-4. Products/prices: wait for the pricing decision. When enabling: `BILLING_MODE=paddle_sandbox` +
-   `PADDLE_WEBHOOK_SECRET` in `.env`.
+4. **Catalog → Products**: create Solo ($19/month), Pro ($39/month), Agency ($99/month) and two "Extra account" add-on
+   prices (Pro $6/month, Agency $5/month). Copy each price ID (`pri_…`) → `PADDLE_PRICE_SOLO`, `PADDLE_PRICE_PRO`,
+   `PADDLE_PRICE_AGENCY`, `PADDLE_PRICE_EXTRA_PRO`, `PADDLE_PRICE_EXTRA_AGENCY`.
+5. Server `.env`: `BILLING_MODE=paddle_sandbox` plus the seven `PADDLE_*` values; redeploy. Test with Paddle's test card
+   on **Plan** → Checkout; the plan should change within a minute (webhook).
 
 ## 9. GitHub (repository settings)
 1. **Deploy key pair** (on your machine, never reuse your personal key):
@@ -179,7 +183,7 @@ that is on hold).
 | `LEGAL_OPERATOR_NAME`, `SUPPORT_EMAIL`, `LEGAL_GOVERNING_LAW`, `LEGAL_EFFECTIVE_DATE` | server `.env` | your decisions |
 | `REFUND_WINDOW_DAYS` | server `.env` | billing decision (on hold) |
 | `PINTEREST_CLIENT_ID`, `PINTEREST_CLIENT_SECRET` | password manager → server `.env` at Step 4 | Pinterest (step 7) |
-| `PADDLE_WEBHOOK_SECRET`, `PADDLE_API_KEY` | password manager → server `.env` when billing resumes | Paddle sandbox (step 8) |
+| `PADDLE_WEBHOOK_SECRET`, `PADDLE_CLIENT_TOKEN`, `PADDLE_PRICE_*` | password manager → server `.env` | Paddle sandbox (step 8) |
 | `BACKUP_PASSPHRASE`, `R2_*`, `BACKUP_DEST` | only if backups are enabled | docs/runbooks/backup-restore.md |
 | `STAGING_SSH_KEY`, `STAGING_SSH_KNOWN_HOSTS` | GitHub environment `staging` (secrets) | step 9 |
 | `STAGING_APP_HOST`, `STAGING_SSH_HOST`, `STAGING_SSH_USER`, `STAGING_DEPLOY_ENABLED` | GitHub repository variables | step 9 |

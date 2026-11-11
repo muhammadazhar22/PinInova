@@ -49,6 +49,8 @@ const schema = z.object({
   // policy: PA-07
   INTEGRITY_UA_MODE: z.enum(["pinterestbot", "honest"]).default("pinterestbot"),
   INTEGRITY_ALLOW_PRIVATE_HOSTS: bool.default(false),
+  // Alert (in-app + e-mail) when the new-Pin warning opens (SPEC-079). Off until its precision on real accounts is known.
+  NEW_PINS_ALERTS: bool.default(false),
   // policy: PA-08
   PROVISIONAL_DAYS: z.coerce.number().int().min(0).max(7).default(2),
 

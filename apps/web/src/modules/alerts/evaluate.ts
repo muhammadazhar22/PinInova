@@ -62,6 +62,29 @@ export async function evaluateAlerts(workspaceId: string, orgId: string, now = n
         if (ch === "in_app") await tx`UPDATE alert SET delivered_at = now() WHERE id = ${a.id}`;
       }
     }
+    // New Pins not distributed (SPEC-079): a warning issue, not an incident. Alerted once per issue, in-app and by
+    // e-mail, only when switched on; Slack stays for action-needed incidents.
+    if (env().NEW_PINS_ALERTS) {
+      const open = await tx<{ id: string; title: string; connection_id: string; username: string }[]>`
+        SELECT i.id, i.title, i.connection_id, c.username FROM issue i JOIN pinterest_connection c ON c.id = i.connection_id
+        WHERE i.kind = 'distribution:new_pins' AND i.state IN ('open', 'regressed') AND c.status = 'active'`;
+      for (const is of open) {
+        const title = `New Pins aren't getting views on @${is.username}`;
+        const text = `${is.title}. The account as a whole has not dropped. This often comes from a publishing pattern (reused images, one link on many Pins, many Pins at once); see the account's Issues for the evidence. This is a likely explanation, not a confirmation from Pinterest.`;
+        const channels: ("in_app" | "email")[] = ["in_app", ...(settings?.emails?.length ? (["email"] as const) : [])];
+        for (const ch of channels) {
+          const [a] = await tx<{ id: string }[]>`
+            INSERT INTO alert (workspace_id, issue_id, tier, channel, title, body)
+            SELECT ${workspaceId}, ${is.id}, 'new_pins', ${ch}, ${title}, ${text}
+            WHERE NOT EXISTS (SELECT 1 FROM alert WHERE issue_id = ${is.id} AND channel = ${ch})
+            RETURNING id`;
+          if (!a) continue;
+          created.push(a.id);
+          if (ch === "in_app") await tx`UPDATE alert SET delivered_at = now() WHERE id = ${a.id}`;
+          else for (const to of settings!.emails) await queueEmail(tx, { workspaceId, connectionId: is.connection_id, to, subject: title, html: `<p>${escapeHtml(text)}</p>` });
+        }
+      }
+    }
     return { evaluated: incidents.length, created };
   });
 }

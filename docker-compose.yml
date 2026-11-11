@@ -17,9 +17,10 @@ services:
     command: sh -c "corepack enable && pnpm install --ignore-workspace --frozen-lockfile && pnpm start"
     environment:
       MOCK_HOST: 0.0.0.0
-      MOCK_SITE_BASE: http://127.0.0.1:4011
-      MOCK_API_BASE: http://127.0.0.1:4010
+      MOCK_SITE_BASE: http://127.0.0.1:4411
+      MOCK_API_BASE: http://127.0.0.1:4410
       MOCK_RATE_ANALYTICS_PER_MIN: "600"
     volumes: ["./services/pinterest-mock:/app/services/pinterest-mock"]
-    ports: ["4010:4010", "4011:4011"]
+    # Host ports 4410/4411 (matching .env.example): Windows often reserves 3980-4079, so 4010/4011 fail to publish there.
+    ports: ["4410:4010", "4411:4011"]
 volumes: { pgdata: {} }

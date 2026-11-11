@@ -1,4 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { env, resetEnvCache } from "./env";
 
 const saved = { ...process.env };
@@ -60,5 +62,44 @@ describe("production config guard", () => {
     delete process.env.ANALYTICS_TOKEN;
     resetEnvCache();
     expect(env().ANALYTICS_TOKEN).toBeUndefined();
+  });
+});
+
+/** Minimal .env reader matching @next/env and `set -a; . .env.local`: KEY=value, inline "  # comment" stripped. */
+function readEnvFile(path: string) {
+  const out: Record<string, string> = {};
+  for (const line of readFileSync(path, "utf8").split("\n")) {
+    const m = /^([A-Z0-9_]+)=(.*)$/.exec(line);
+    if (m) out[m[1]!] = m[2]!.replace(/\s+#.*$/, "").trim();
+  }
+  return out;
+}
+
+describe("blank values (SPEC-078)", () => {
+  it("starts with .env.example copied unchanged, blank placeholders included", () => {
+    const example = readEnvFile(fileURLToPath(new URL("../../../.env.example", import.meta.url)));
+    expect(example.SENTRY_DSN).toBe("");
+    Object.assign(process.env, example, { NODE_ENV: "development" });
+    resetEnvCache();
+    expect(() => env()).not.toThrow();
+  });
+
+  it("treats an empty value as unset, so defaults and optionals apply", () => {
+    Object.assign(process.env, { NODE_ENV: "development", SENTRY_DSN: "", SUPPORT_EMAIL: "", REFUND_WINDOW_DAYS: "", CHROME_PATH: "", BETTER_AUTH_SECRET: "" });
+    resetEnvCache();
+    const e = env();
+    expect(e.SENTRY_DSN).toBeUndefined();
+    expect(e.SUPPORT_EMAIL).toBeUndefined();
+    expect(e.REFUND_WINDOW_DAYS).toBeUndefined();
+    expect(e.CHROME_PATH).toBe("/usr/bin/google-chrome");
+  });
+
+  it("still refuses production when a required secret is blank", () => {
+    production({ BETTER_AUTH_SECRET: "" });
+    expect(() => env()).toThrow(/BETTER_AUTH_SECRET/);
+    production({ TOKEN_KEK_V1: "" });
+    expect(() => env()).toThrow(/TOKEN_KEK_V1/);
+    production({ ANALYTICS_TOKEN: "" });
+    expect(() => env()).toThrow(/ANALYTICS_TOKEN/);
   });
 });

@@ -41,9 +41,9 @@ Web app config (`apps/web/src/env.ts`): `PINTEREST_MODE=mock`, `PINTEREST_API_BA
 
 | Env | Default | Meaning |
 |---|---|---|
-| `MOCK_PORT` | 4010 | API port (0 = random) |
+| `MOCK_PORT` | 4010 | API port (0 = random). The repo's `.env.example` sets 4410 for local dev, outside Windows' commonly reserved 3980-4079 |
 | `MOCK_SITE_PORT` | 4011 | mock websites port |
-| `MOCK_HOST` | 127.0.0.1 | bind host |
+| `MOCK_HOST` | 127.0.0.1 | bind host (`::` = all interfaces, IPv4 and IPv6; `.env.example` uses it so a WSL/Windows browser reaching `localhost` via `::1` works) |
 | `MOCK_CLIENT_ID` / `MOCK_CLIENT_SECRET` | `mock-client-id` / `mock-client-secret` | the only valid app credentials |
 | `MOCK_TODAY` | current UTC date (re-read on every request) | anchors all synthetic dates |
 | `MOCK_RATE_ANALYTICS_PER_MIN` | 60 | `org_analytics` limit per token |

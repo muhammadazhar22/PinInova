@@ -26,8 +26,32 @@ pip install -e "services/analytics[dev]"
 docker compose up -d postgres
 cp .env.example apps/web/.env.local     # fill BETTER_AUTH_SECRET, TOKEN_KEK_V1 and ANALYTICS_TOKEN (openssl rand -base64 32),
                                         # set INTEGRITY_ALLOW_PRIVATE_HOSTS=true for the local mock websites
-scripts/dev-stack.sh                    # mock Pinterest :4010/:4011, analytics :8000, web :3000, worker
+scripts/dev-stack.sh                    # mock Pinterest :4410 (MOCK_PORT) and :4011, analytics :8000, web :3000, worker
 ```
+
+Edit values in `apps/web/.env.local` in place rather than appending new lines: when a key appears twice, the last one
+wins, and a forgotten copy higher up is easy to misread. Blank values (`SENTRY_DSN=`) count as unset.
+`scripts/dev-stack.sh --prod` runs `next build && next start` instead of `next dev`; it refuses the default
+`pinpulse_app` password, so set your own in `DATABASE_URL` (`openssl rand -hex 24`).
+
+### Windows (WSL2)
+
+Run everything inside WSL (Ubuntu), with the repo on the Linux file system (`~/PinInova`, not `/mnt/c/...`) and Docker
+Desktop's WSL integration turned on. Then follow the steps above, plus:
+
+- **Ports.** Windows reserves blocks of ports that a Windows browser then can't reach, often 3980-4079 (which covers
+  the mock's built-in 4010). `.env.example` therefore uses `MOCK_PORT=4410`. To see your machine's reserved ranges, run
+  `netsh.exe interface ipv4 show excludedportrange protocol=tcp` from WSL; if 4410 is inside one, pick a free port and
+  change `MOCK_PORT`, `PINTEREST_API_BASE` and `PINTEREST_OAUTH_BASE` together.
+- **localhost and IPv6.** The browser opens the mock's consent page, so `PINTEREST_OAUTH_BASE` uses `localhost`, and
+  `MOCK_HOST=::` makes the mock listen on IPv4 and IPv6 (Windows may send `localhost` to `::1`). If IPv6 is disabled
+  in your WSL, use `MOCK_HOST=0.0.0.0`.
+- **Chrome** (PDF reports and browser tests) must be installed inside WSL, at `/usr/bin/google-chrome` by default:
+  `wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb` then
+  `sudo apt install -y ./google-chrome-stable_current_amd64.deb`.
+- **Slow or failing `pnpm install`.** On some connections Node's IPv6/happy-eyeballs handling times out; this helped:
+  `export NODE_OPTIONS="--dns-result-order=ipv4first --network-family-autoselection-attempt-timeout=2000"`.
+- **`next dev` keeps reloading.** Use `scripts/dev-stack.sh --prod` (see above).
 
 Open http://localhost:3000, sign up, create a workspace and press **Connect Pinterest account**. You land on a page
 titled "MOCK Pinterest — not the real Pinterest"; pick one of the scenario accounts:

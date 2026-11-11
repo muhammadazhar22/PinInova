@@ -7,7 +7,8 @@ import { domainKey } from "@/lib/dates";
 import { analytics } from "@/modules/health/analytics-client";
 import { closeIssuesNotIn, upsertIssue } from "@/modules/health/analyze";
 import type { PinterestClient } from "@/modules/pinterest/client";
-import { clientFor } from "@/modules/pinterest/connections";
+import { clientFor, markNeedsReauth } from "@/modules/pinterest/connections";
+import { PinterestAuthError } from "@/modules/pinterest/errors";
 import type { Pin } from "@/modules/pinterest/types";
 import { checkFetch, evaluateRobots, type FetchResult } from "./fetcher";
 
@@ -41,9 +42,15 @@ export function robotsUrlFor(link: string, mode: "mock" | "live"): { url: string
  */
 export async function runIntegrityChecks(workspaceId: string, connectionId: string, opts: { client?: PinterestClient; pins?: Pin[] } = {}) {
   const e = env();
-  const client = opts.client ?? (await clientFor(workspaceId, connectionId));
   const pins: Pin[] = opts.pins ?? [];
-  if (!opts.pins) for await (const p of client.listPins({ pageSize: 250 })) pins.push(p);
+  try {
+    const client = opts.client ?? (await clientFor(workspaceId, connectionId));
+    if (!opts.pins) for await (const p of client.listPins({ pageSize: 250 })) pins.push(p);
+  } catch (err) {
+    // Same as sync: a rejected token flags the connection so the UI asks the user to reconnect (CLAUDE.md: 401 → re-auth).
+    if (err instanceof PinterestAuthError) await markNeedsReauth(workspaceId, connectionId, err.message);
+    throw err;
+  }
   const fetchOpts = { uaMode: e.INTEGRITY_UA_MODE, allowPrivate: e.INTEGRITY_ALLOW_PRIVATE_HOSTS && e.PINTEREST_MODE === "mock", timeoutMs: 8000 } as const;
 
   // Sample: newest Pins per domain (titles are used in memory only and never stored — policy: PA-02).

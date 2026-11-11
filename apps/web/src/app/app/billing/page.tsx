@@ -1,7 +1,7 @@
 import { Card, Chip, fmtDate } from "@/components/ui";
 import { env } from "@/env";
 import { requireUser } from "@/modules/auth/session";
-import { entitlements, PLANS } from "@/modules/billing/plans";
+import { entitlements, PAID_PLANS, PLANS, planFeatures } from "@/modules/billing/plans";
 import { listOrgsForUser } from "@/modules/workspaces/access";
 import { simulateCheckoutAction } from "../actions";
 
@@ -21,15 +21,13 @@ export default async function BillingPage() {
           <Card key={o.id} title={o.name} action={<Chip tone={ent.canConnect ? "good" : "warn"}>{PLANS[ent.plan as keyof typeof PLANS]?.label ?? ent.plan} · {ent.activeAccounts}/{ent.accountLimit} accounts</Chip>}>
             {ent.plan === "trial" && <p className="muted mb-3 text-sm">Trial ends {fmtDate(ent.trialEndsAt)}.</p>}
             <div className="grid gap-4 md:grid-cols-3">
-              {(["solo", "pro", "agency"] as const).map((p) => (
+              {PAID_PLANS.map((p) => (
                 <form key={p} action={simulateCheckoutAction} className="rounded-lg border border-stone-200 p-4">
                   <input type="hidden" name="org" value={o.id} /><input type="hidden" name="plan" value={p} />
                   <div className="font-semibold">{PLANS[p].label}</div>
                   <div className="text-2xl font-semibold tabular-nums">${PLANS[p].priceUsd}<span className="muted text-sm">/month</span></div>
                   <ul className="muted mt-2 space-y-1 text-sm">
-                    <li>{PLANS[p].accounts} account{PLANS[p].accounts > 1 ? "s" : ""}{PLANS[p].extraUsd ? `, +$${PLANS[p].extraUsd} each extra` : ""}</li>
-                    <li>{PLANS[p].slack ? "Email and Slack alerts" : "Email alerts"}</li>
-                    <li>{PLANS[p].whiteLabel ? "White-label reports" : "PinInova-branded reports"}</li>
+                    {planFeatures(p).map((f) => <li key={f}>{f}</li>)}
                   </ul>
                   {PLANS[p].extraUsd > 0 && <label className="mt-2 block text-xs">Extra accounts <input className="input mt-1" name="extra" type="number" min={0} max={200} defaultValue={0} /></label>}
                   <button className="btn-primary mt-3" disabled={!simulated || ent.plan === p}>{ent.plan === p ? "Current plan" : simulated ? "Switch (simulated)" : "Checkout"}</button>

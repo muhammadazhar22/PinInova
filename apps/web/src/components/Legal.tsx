@@ -27,6 +27,7 @@ export function LegalFooter() {
   return (
     <footer className="muted mx-auto max-w-4xl px-4 py-8 text-xs">
       <nav aria-label="Legal" className="flex flex-wrap gap-4">
+        <Link href="/pricing">Pricing</Link>
         <Link href="/privacy">Privacy</Link>
         <Link href="/terms">Terms</Link>
         <Link href="/refunds">Refunds</Link>

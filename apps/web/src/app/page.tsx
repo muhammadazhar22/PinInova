@@ -14,6 +14,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
         <p className="muted mt-4 max-w-2xl text-lg">PinInova watches every account daily, dates the moment reach changed, separates platform-side drops from fixable problems, and builds the evidence pack and client report for you. Read-only access. Built for Pinterest VAs, agencies and creators.</p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link className="btn-primary" href="/signup">Start free trial</Link>
+          <Link className="btn-secondary" href="/pricing">Pricing</Link>
           <Link className="btn-secondary" href="/drop-check">Free Drop Check (no account)</Link>
           <Link className="btn-secondary" href="/weather">Is it just me? Weather</Link>
           <Link className="btn-secondary" href="/login">Sign in</Link>

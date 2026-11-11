@@ -32,6 +32,16 @@ deployment work.
 
 If Pinterest's review runs past early January, only the last two rows move.
 
+### Status on 11 Nov 2026
+
+- Code: Step 3's list is mostly merged (ticked below). Open: `/pricing` (SPEC-080), Paddle checkout (SPEC-081), backups (SPEC-074).
+- Found and fixed on 11 Nov while running the app locally on Windows/WSL: Windows reserved ports and IPv6 for the mock
+  (SPEC-078), report PDF layout (SPEC-023), link checks not flagging re-authorization on a 401 (SPEC-020), reconnect
+  blocked at the plan limit (SPEC-001), new-Pin collapse not reported (SPEC-079).
+- Known gap: `PLANS` lists 1,000 tracked Pins for Pro/Agency but `TRACKED_PINS_CAP` (300) caps every plan. Owner decision.
+- Owner items not started yet (Step 2): domain, Pinterest developer app, Paddle, Resend, hosting accounts. Drafts for
+  the Pinterest submission, the agency DPA and the beta are in `docs/launch/`.
+
 ## Step 1 — Code on GitHub (done 9 Nov 2026)
 
 Pushed to `main` with full history. Remaining repo settings for the owner:
@@ -79,14 +89,14 @@ Owner checklist (accounts, DNS, server, every secret and where it goes): `docs/r
 
 Code to write before deploying (one PR each):
 
-- [ ] Dockerfile for web + worker (Chrome included) and `docker-compose.prod.yml` with Caddy.
-- [ ] Public `/pricing`, `/privacy`, `/terms`, `/refunds` pages.
-- [ ] Paddle checkout (sandbox first): product/price IDs, checkout button, a new `paddle_live` billing mode.
-- [ ] Sentry and OpenTelemetry; a worker heartbeat on the health endpoint.
-- [ ] Deploy workflow: on merge to `main`, build images, migrate with the owner role, restart over SSH.
-- [ ] Nightly `pg_dump` to Cloudflare R2 plus a restore script.
-- [ ] Shared-secret auth on the analytics service.
-- [ ] `apps/web/scripts/smoke-live.ts` checking the five guessed Pinterest contract details (docs/INTEGRATIONS.md; runbook `docs/runbooks/live-smoke-test.md`).
+- [x] Dockerfile for web + worker (Chrome included) and `docker-compose.prod.yml` with Caddy. (#2, SPEC-070)
+- [ ] Public `/pricing`, `/privacy`, `/terms`, `/refunds` pages. Privacy/terms/refunds done (#5, SPEC-071); `/pricing` in review (SPEC-080). The legal pages show "[to be set: …]" until the owner fills `LEGAL_*`, `SUPPORT_EMAIL` and `REFUND_WINDOW_DAYS`.
+- [ ] Paddle checkout (sandbox first): product/price IDs, checkout button, a new `paddle_live` billing mode. Webhook handler and simulated checkout exist; real checkout in progress (SPEC-081). Needs the owner's Paddle sandbox account to test end to end.
+- [x] Sentry and OpenTelemetry; a worker heartbeat on the health endpoint. (#4, SPEC-072)
+- [x] Deploy workflow: on merge to `main`, build images, migrate with the owner role, restart over SSH. (#6, SPEC-073; off until the repo variable `STAGING_DEPLOY_ENABLED=true`)
+- [ ] Nightly `pg_dump` to Cloudflare R2 plus a restore script. Draft #8 (SPEC-074) was on hold; resumed 11 Nov 2026 at the owner's request.
+- [x] Shared-secret auth on the analytics service. (#3, SPEC-075)
+- [x] `apps/web/scripts/smoke-live.ts` checking the five guessed Pinterest contract details (docs/INTEGRATIONS.md; runbook `docs/runbooks/live-smoke-test.md`). (#7, SPEC-076)
 
 Secrets: `BETTER_AUTH_SECRET` and `TOKEN_KEK_V1` (`openssl rand -base64 32`; keep a sealed offline copy of the KEK),
 `DATABASE_URL` (app role), `DATABASE_OWNER_URL` (migrations only), Pinterest app ID/secret, Paddle sandbox key and

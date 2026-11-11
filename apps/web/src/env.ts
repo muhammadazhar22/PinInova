@@ -58,7 +58,8 @@ const schema = z.object({
   PURGE_DELAY_HOURS: z.coerce.number().min(0).default(0),
   REAUTH_GRACE_DAYS: z.coerce.number().int().default(14),
 
-  TRACKED_PINS_CAP: z.coerce.number().int().default(300),
+  // Server-wide ceiling on per-account tracked Pins; plans set their own (Solo 300, Pro/Agency 1,000). SPEC-080.
+  TRACKED_PINS_CAP: z.coerce.number().int().min(1).default(1000),
 
   EMAIL_TRANSPORT: z.enum(["outbox", "resend"]).default("outbox"),
   RESEND_API_KEY: z.string().optional(),

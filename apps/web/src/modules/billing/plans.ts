@@ -1,3 +1,4 @@
+import { env } from "@/env";
 import { db, type Tx, one } from "@/lib/db";
 
 export type Plan = "trial" | "solo" | "pro" | "agency" | "canceled";
@@ -12,15 +13,20 @@ export const PLANS: Record<Exclude<Plan, "canceled">, { label: string; priceUsd:
 export const PAID_PLANS = ["solo", "pro", "agency"] as const;
 export type PaidPlan = (typeof PAID_PLANS)[number];
 
+/** Pins tracked individually per account: the plan's number, bounded by the server-wide TRACKED_PINS_CAP (sync.ts). */
+export function deliveredTrackedPins(p: Exclude<Plan, "canceled">): number {
+  return Math.min(PLANS[p].trackedPins, env().TRACKED_PINS_CAP);
+}
+
 /**
  * What each paid plan includes, for the public /pricing page and in-app billing (one list, so they cannot drift).
- * Tracked-Pin limits are left out on purpose: the server caps them at TRACKED_PINS_CAP (300 by default), below
- * Pro/Agency's `trackedPins`, so advertising them would overstate what is delivered (SPEC-080).
+ * The tracked-Pin line shows what sync actually delivers (`deliveredTrackedPins`), so it can never overstate it.
  */
 export function planFeatures(p: PaidPlan): string[] {
   const x = PLANS[p];
   return [
     `${x.accounts} Pinterest account${x.accounts > 1 ? "s" : ""}${x.extraUsd ? `, +$${x.extraUsd}/month each extra` : ""}`,
+    `Up to ${deliveredTrackedPins(p).toLocaleString("en-US")} Pins tracked individually${x.accounts > 1 ? " per account" : ""}`,
     x.slack ? "Email and Slack alerts" : "Email alerts",
     x.whiteLabel ? "White-label reports" : "PinInova-branded reports",
   ];

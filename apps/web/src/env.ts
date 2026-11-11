@@ -90,7 +90,9 @@ export type Env = z.infer<typeof schema>;
 let cached: Env | undefined;
 export function env(): Env {
   if (!cached) {
-    const parsed = schema.safeParse(process.env);
+    // An empty value (`SENTRY_DSN=` as copied from .env.example) means unset: defaults and optionals apply.
+    // Otherwise "" fails .url()/.email()/.min() and blanks out defaults like CHROME_PATH (SPEC-078).
+    const parsed = schema.safeParse(Object.fromEntries(Object.entries(process.env).filter(([, v]) => v !== "")));
     if (!parsed.success) {
       throw new Error(`Invalid configuration: ${parsed.error.message}`);
     }

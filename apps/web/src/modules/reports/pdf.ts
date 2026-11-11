@@ -5,11 +5,16 @@ import { withWorkspace } from "@/lib/db";
 let browser: Promise<Browser> | null = null;
 function getBrowser() {
   if (!browser) {
-    browser = chromium.launch({
+    const launching = chromium.launch({
       executablePath: env().CHROME_PATH,
       args: ["--no-sandbox", "--disable-dev-shm-usage"],
       headless: true,
     });
+    // Do not cache a failed launch (e.g. Chrome installed after the first try): the next call retries (SPEC-078).
+    launching.catch(() => {
+      if (browser === launching) browser = null;
+    });
+    browser = launching;
   }
   return browser;
 }
@@ -41,7 +46,8 @@ export async function renderReportPdf(workspaceId: string, reportId: string) {
 
 export async function closePdf() {
   if (browser) {
-    await (await browser).close();
+    const b = browser;
     browser = null;
+    await (await b.catch(() => null))?.close();
   }
 }

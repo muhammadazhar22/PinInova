@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Runs the whole local stack against MOCK Pinterest: mock API (4010) + mock sites (4011), analytics (8000),
+# Runs the whole local stack against MOCK Pinterest: mock API (MOCK_PORT, default 4010; .env.example uses 4410 for
+# Windows/WSL) + mock sites (4011), analytics (8000),
 # Next.js (3000) and the job worker. Requires Postgres (docker compose up postgres) and apps/web/.env.local.
 # Usage: scripts/dev-stack.sh [--prod]   (--prod runs `next build && next start` instead of `next dev`)
 set -euo pipefail
@@ -26,7 +27,7 @@ set -a; . ./.env.local; set +a
 pnpm db:migrate
 if [ "${1:-}" = "--prod" ]; then pnpm build >"$LOG/build.log" 2>&1; ( pnpm start >"$LOG/web.log" 2>&1 ) & else ( pnpm dev >"$LOG/web.log" 2>&1 ) & fi
 ( pnpm worker >"$LOG/worker.log" 2>&1 ) &
-for url in http://127.0.0.1:4010/__mock/state http://127.0.0.1:8000/healthz http://localhost:3000/api/health; do
+for url in "http://127.0.0.1:${MOCK_PORT:-4010}/__mock/state" http://127.0.0.1:8000/healthz http://localhost:3000/api/health; do
   for _ in $(seq 1 120); do curl -fsS -o /dev/null "$url" 2>/dev/null && break; sleep 1; done
 done
 echo "PinInova (MOCK Pinterest) at http://localhost:3000 — logs in $LOG. Ctrl-C to stop."

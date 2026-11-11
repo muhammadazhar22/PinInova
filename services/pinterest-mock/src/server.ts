@@ -433,7 +433,7 @@ const ROUTES: Route[] = [
 
 export async function createMockServer(options: MockServerOptions = {}): Promise<RunningMock> {
   const cfg = resolveServerConfig(options);
-  const store = new OAuthStore(cfg.now);
+  const store = new OAuthStore(cfg.now, cfg.stateFile);
   const limiter = new RateLimiter(cfg.now);
   let faultRate = cfg.faultRate;
   let faultRng = mulberry32(hashN(cfg.seed, 0xfa17));

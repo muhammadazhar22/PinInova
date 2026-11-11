@@ -38,6 +38,10 @@ problems, each worked around by hand in `.env.local`:
       fetch (allowed only from the `PINTEREST_API_BASE` host) rejected every Pin image and duplicate-image detection found
       nothing (`mock_new_pins_zero` scored content integrity 100). Wildcard binds (`::`, `0.0.0.0`) now advertise
       `http://127.0.0.1:<port>` for the API and the mock websites. Test: `services/pinterest-mock/test/listen-host.test.ts`.
+- [x] Follow-up: the mock kept tokens in memory, so every restart of `scripts/dev-stack.sh` silently invalidated
+      every connected mock account (link checks then failed with 401). `MOCK_STATE_FILE` persists access/refresh
+      tokens and revocations; `dev-stack.sh` sets `.dev/mock-oauth.json` (git-ignored). Unset = memory only (tests, CI).
+      Test: `services/pinterest-mock/test/oauth-persist.test.ts`.
 - [x] Gate: web typecheck + unit/RLS tests, `scripts/test-e2e.sh`, `scripts/test-browser.sh`.
 
 ## Out of scope

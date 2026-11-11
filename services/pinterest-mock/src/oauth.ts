@@ -5,6 +5,8 @@
  * tokens that rotate on every refresh).
  */
 import { randomBytes } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
 import { ACCOUNTS } from "./catalog.ts";
 
 export const ACCESS_TOKEN_TTL_S = 2_592_000; // 30 days
@@ -62,13 +64,38 @@ export class OAuthStore {
   refresh = new Map<string, RefreshRec>();
   revocations: { username: string; at: number }[] = [];
 
-  constructor(private now: () => number) {}
+  /**
+   * `stateFile` (MOCK_STATE_FILE): persist access/refresh tokens and revocations so they survive a restart of the
+   * local stack (SPEC-078). Mock tokens only; authorization codes stay in memory (they live 10 minutes).
+   */
+  constructor(private now: () => number, private stateFile?: string | null) {
+    if (stateFile && existsSync(stateFile)) {
+      try {
+        const st = JSON.parse(readFileSync(stateFile, "utf8")) as { access?: AccessRec[]; refresh?: RefreshRec[]; revocations?: { username: string; at: number }[] };
+        for (const a of st.access ?? []) this.access.set(a.token, a);
+        for (const r of st.refresh ?? []) this.refresh.set(r.token, r);
+        this.revocations = st.revocations ?? [];
+      } catch {
+        // A corrupt or partial file starts empty, exactly like a store without one.
+      }
+    }
+  }
+
+  /** Write the persistent part of the store (no-op without a state file). Atomic: temp file + rename. */
+  private save(): void {
+    if (!this.stateFile) return;
+    mkdirSync(dirname(this.stateFile), { recursive: true });
+    const tmp = `${this.stateFile}.tmp`;
+    writeFileSync(tmp, JSON.stringify({ access: [...this.access.values()], refresh: [...this.refresh.values()], revocations: this.revocations }));
+    renameSync(tmp, this.stateFile);
+  }
 
   reset(): void {
     this.codes.clear();
     this.access.clear();
     this.refresh.clear();
     this.revocations = [];
+    this.save();
   }
 
   issueCode(clientId: string, redirectUri: string, username: string, scope: string): string {
@@ -84,6 +111,7 @@ export class OAuthStore {
     this.access.set(access, { token: access, username, scope, clientId, issuedAt: now, expiresAt: now + ACCESS_TOKEN_TTL_S * 1000, revoked: false, forcedExpired: false });
     const refreshExpiresAt = now + REFRESH_TOKEN_TTL_S * 1000;
     this.refresh.set(refresh, { token: refresh, username, scope, clientId, expiresAt: refreshExpiresAt, valid: true });
+    this.save(); // also records a rotated refresh token's invalidation, made just before this call
     return { access, refresh, refreshExpiresAt };
   }
 
@@ -139,6 +167,7 @@ export class OAuthStore {
     const rec = this.access.get(token);
     if (!rec) return false;
     rec.forcedExpired = true;
+    this.save();
     return true;
   }
 
@@ -149,6 +178,7 @@ export class OAuthStore {
     for (const rec of this.access.values()) if (rec.username === username && !rec.revoked) { rec.revoked = true; a++; }
     for (const rec of this.refresh.values()) if (rec.username === username && rec.valid) { rec.valid = false; rec.invalidReason = "revoked"; r++; }
     this.revocations.push({ username, at: this.now() });
+    this.save();
     return { access: a, refresh: r };
   }
 

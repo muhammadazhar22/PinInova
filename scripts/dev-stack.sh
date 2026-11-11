@@ -21,6 +21,8 @@ cd "$ROOT/apps/web"
 [ -f .env.local ] || { echo "apps/web/.env.local missing — copy .env.example and fill BETTER_AUTH_SECRET/TOKEN_KEK_V1"; exit 1; }
 set -a; . ./.env.local; set +a
 
+# Mock logins survive a restart of this script (SPEC-078); delete the file or POST /__mock/reset to log everyone out.
+export MOCK_STATE_FILE="${MOCK_STATE_FILE:-$ROOT/.dev/mock-oauth.json}"
 ( cd "$ROOT/services/pinterest-mock" && MOCK_SITE_BASE=http://127.0.0.1:4011 MOCK_RATE_ANALYTICS_PER_MIN=${MOCK_RATE_ANALYTICS_PER_MIN:-600} pnpm exec tsx src/cli.ts >"$LOG/mock.log" 2>&1 ) &
 # Same ANALYTICS_TOKEN as the web app (from .env.local); required by `next start` (--prod), optional for `next dev`.
 ( cd "$ROOT/services/analytics" && ANALYTICS_TOKEN="${ANALYTICS_TOKEN:-}" python3 -m uvicorn pinpulse_analytics.api:app --host 127.0.0.1 --port 8000 >"$LOG/analytics.log" 2>&1 ) &

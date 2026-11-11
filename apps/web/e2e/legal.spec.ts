@@ -16,4 +16,11 @@ test("privacy, terms and refund pages are public and linked from the footer", as
   await page.goto("/privacy");
   await expect(page.getByText(/user_accounts:read, pins:read, boards:read/)).toBeVisible();
   await expect(page.getByText(/kept for at most 90 days/)).toBeVisible();
+  // SPEC-080: public pricing (Paddle's domain review needs it), linked from the footer, no login.
+  await page.goto("/");
+  await page.getByRole("navigation", { name: "Legal" }).getByRole("link", { name: "Pricing" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Pricing" })).toBeVisible();
+  for (const price of ["$19", "$39", "$99"]) await expect(page.getByText(price, { exact: true })).toBeVisible();
+  await expect(page.getByText(/Paddle\.com is our Merchant of Record/)).toBeVisible();
+  await expect(page.locator("body")).not.toContainText(/guarantee/i);
 });
